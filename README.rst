@@ -1,6 +1,8 @@
 .. image:: https://readthedocs.org/projects/cordex/badge/?version=latest
     :alt: Documentation Status
     :target: https://cordex.readthedocs.io/en/latest/?badge=latest
+.. image:: https://travis-ci.org/euro-cordex/cordex.svg?branch=master
+    :target: https://travis-ci.org/euro-cordex/cordex
 
 ======
 cordex
