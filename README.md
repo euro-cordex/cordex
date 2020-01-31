@@ -1,2 +1,0 @@
-# cordex
-cordex python package
