@@ -3,7 +3,7 @@ cordex
 ======
 
 
-Add a short description here!
+cordex python package
 
 
 Description
