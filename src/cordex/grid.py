@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# flake8: noqa 
+# flake8: noqa
 """Grid module
 
 This module defines preconfigured CORDEX grids.
@@ -42,7 +42,7 @@ class RotatedGrid(Grid):
     """
     def __init__(self, nlon, nlat, dlon, dlat,
                  pollon, pollat, ll_lon, ll_lat, name=None):
-        if name is None: 
+        if name is None:
             self.name = 'NO NAME'
         else:
             self.name = name
@@ -68,7 +68,7 @@ class RotatedGrid(Grid):
           nlat (int): number of extensions in latitude direction (default nlat=nlon).
 
         Returns:
-          Grid: Grid instance with extended boundaries. 
+          Grid: Grid instance with extended boundaries.
 
         """
         if nlat is None: nlat = nlon
@@ -89,7 +89,7 @@ class EUR_44(RotatedGrid):
     """
     def __init__(self):
         RotatedGrid.__init__(self, 106, 103, 0.44, 0.44,
-                -162.0, 39.25, -28.21, -23.21, name='EUR-44')
+            -162.0, 39.25, -28.21, -23.21, name='EUR-44')
 
 
 class EUR_11(RotatedGrid):
@@ -97,7 +97,7 @@ class EUR_11(RotatedGrid):
     """
     def __init__(self):
         RotatedGrid.__init__(self, 424, 412, 0.11, 0.11,
-                -162.0, 39.25, -28.375, -23.375, name='EUR-11')
+            -162.0, 39.25, -28.375, -23.375, name='EUR-11')
 
 
 class _GridFactory(object):
@@ -124,7 +124,7 @@ class _GridFactory(object):
           name (str): standard name of the grid.
 
         Returns:
-          grid (:class:`Grid`) : a grid instance. 
+          grid (:class:`Grid`) : a grid instance.
 
         """
         out = None
@@ -132,8 +132,8 @@ class _GridFactory(object):
            if name == grid.name:
               out = grid
         if out is None:
-           _logger.error('Unknown grid name: '+grid) 
-           _logger.info('Known grid names: '+str(cls.grids())) 
+           _logger.error('Unknown grid name: '+grid)
+           _logger.info('Known grid names: '+str(cls.grids()))
            raise Exception('Unknown grid name: '+name)
         else:
            return out
