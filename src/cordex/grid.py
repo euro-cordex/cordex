@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# flake8: noqa 
 """Grid module
 
 This module defines preconfigured CORDEX grids.
@@ -27,11 +28,14 @@ __author__ = "Lars Buntemeyer"
 __copyright__ = "Lars Buntemeyer"
 __license__ = "mit"
 
+_logger = logging.getLogger(__name__)
+
 
 class Grid(object):
     """Parent grid class.
     """
     pass
+
 
 class RotatedGrid(Grid):
     """The :class:`RotatedGrid` holds data and meta information of a rotated grid.
@@ -80,7 +84,6 @@ class RotatedGrid(Grid):
         return text
 
 
-
 class EUR_44(RotatedGrid):
     """Defines the EUR-44 rotated grid.
     """
@@ -95,7 +98,6 @@ class EUR_11(RotatedGrid):
     def __init__(self):
         RotatedGrid.__init__(self, 424, 412, 0.11, 0.11,
                 -162.0, 39.25, -28.375, -23.375, name='EUR-11')
-
 
 
 class _GridFactory(object):
@@ -130,8 +132,8 @@ class _GridFactory(object):
            if name == grid.name:
               out = grid
         if out is None:
-           logging.error('Unknown grid name: '+grid) 
-           logging.info('Known grid names: '+str(cls.grids())) 
+           _logger.error('Unknown grid name: '+grid) 
+           _logger.info('Known grid names: '+str(cls.grids())) 
            raise Exception('Unknown grid name: '+name)
         else:
            return out
