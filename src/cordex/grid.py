@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Grid module
 
 This module defines preconfigured CORDEX grids.
@@ -19,6 +20,12 @@ More to come soon..
 
 import numpy as np
 import logging
+
+from cordex import __version__
+
+__author__ = "Lars Buntemeyer"
+__copyright__ = "Lars Buntemeyer"
+__license__ = "mit"
 
 
 class Grid(object):
@@ -111,11 +118,11 @@ class _GridFactory(object):
     def get_grid(cls, name):
         """Returns a grid instance.
 
-        **Arguments**:
-            - **name**: standard name of the grid.
+        Args:
+          name (str): standard name of the grid.
 
-        **Returns**:
-            - **grid**: a grid instance. 
+        Returns:
+          grid (:class:`Grid`) : a grid instance. 
 
         """
         out = None
