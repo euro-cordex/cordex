@@ -1,6 +1,6 @@
 .. image:: https://readthedocs.org/projects/cordex/badge/?version=latest
-:target: https://cordex.readthedocs.io/en/latest/?badge=latest
-:alt: Documentation Status
+    :alt: Documentation Status
+    :target: https://cordex.readthedocs.io/en/latest/?badge=latest
 
 ======
 cordex
