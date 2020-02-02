@@ -8,6 +8,7 @@ This module defines file naming conventions in the
 """
 
 import os
+import logging
 from cordex import __version__
 
 __author__ = "Lars Buntemeyer"
