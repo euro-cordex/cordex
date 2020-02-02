@@ -9,6 +9,7 @@ This module defines file naming conventions in the
 
 import os
 import glob
+import pandas as pd
 import logging
 from cordex import __version__
 
@@ -73,9 +74,11 @@ class FileConvention(object):
 
     def path(self, **kwargs):
         """Build a path.
+
+        Adding a slash at the end here to avoid file results.
         """
         build_str = self._build_str(self.path_conv, **kwargs)
-        return os.path.join(self.root, *build_str)
+        return os.path.join(self.root, *build_str) #+ '/'
 
     def file(self, **kwargs):
         """Build a filename.
@@ -97,7 +100,8 @@ class StringAttributes(object):
     attributes using a list of attributes to look for.
     """
     def __init__(self, str, attrs, sep):
-        self.sep = sep
+        self.sep   = sep
+        self.attrs = attrs
         values = str.split(self.sep)[-len(attrs):]
         self._init_attributes(attrs, values)
 
@@ -106,6 +110,9 @@ class StringAttributes(object):
         """
         for attr, value in zip(attrs, values):
             self.__setattr__(attr, value)
+
+    def attributes(self):
+        return {key:getattr(self,key) for key in self.attrs}
 
 
 class PathAttributes(StringAttributes):
@@ -137,28 +144,30 @@ class FileSelection(object):
         self.pathes = pathes
         self.datapathes = []
         self.files = []
-        self.dict   = {}
-        self._init_pathes()
+        self.fdict   = {}
+        self.pdict   = {}
+        self.df  = pd.DataFrame()
         self._init_files()
 
-    def _init_pathes(self):
-        path_conv = self.convention.path_conv
-        for path in self.pathes:
-            self.datapathes.append(PathAttributes(path, path_conv))
+    def __getitem__(self, key):
+        return self.df[key]
+
+    def __iter__(self):
+        return iter(self.df)
 
     def _init_files(self):
-        file_conv = self.convention.file_conv
         for path in self.pathes:
+            pattrs = PathAttributes(path, self.convention.path_conv)
+            self.datapathes.append(pattrs)
+            self.pdict[path] = pattrs.attributes()
             files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
             for f in files:
-                self.files.append(FileAttributes(f, file_conv, self.convention.file_sep))
-
-    def _sort(self):
-        dict = {}
-        path_conv = self.convention.path_conv
-        nitem = len(path_conv)
-        print(path_conv)
-        dict[path_conv[-1]] = ''
+                fattrs = FileAttributes(f, self.convention.file_conv, self.convention.file_sep)
+                self.files.append(fattrs)
+                self.fdict[f] = fattrs.attributes()
+                self.fdict[f].update(self.pdict[path])
+                df = pd.DataFrame(self.fdict[f], index=[os.path.join(path,f)])
+                self.df = pd.concat([self.df, df])
 
 
 def select_files(convention, root='', filter={}):
@@ -170,6 +179,7 @@ def select_files(convention, root='', filter={}):
     convention.root = root
     convention.defaults = filter
     pattern = convention.path()
+    _logger.info('looking for files in: {}'.format(pattern))
     pathes = glob.glob(pattern)
     return FileSelection(convention, pathes)
 
