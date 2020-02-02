@@ -13,5 +13,6 @@
 # Remember to also add them in setup.cfg but unpinned.
 # Example:
 numpy
+pandas
 # scipy==1.0
 #
