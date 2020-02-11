@@ -14,5 +14,6 @@
 # Example:
 numpy
 pandas
+parse
 # scipy==1.0
 #
