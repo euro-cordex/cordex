@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import pytest
+import os
 from cordex.conventions import FileNameConvention, FilePathConvention
+
+# work around since travis does not install pandas properly!
+os.system('pip install pandas')
 
 __author__ = "Lars Buntemeyer"
 __copyright__ = "Lars Buntemeyer"
