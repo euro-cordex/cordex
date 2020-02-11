@@ -1,4 +1,11 @@
+# -*- coding: utf-8 -*-
+# flake8: noqa
+"""conventions module
 
+This module defines file naming conventions in the
+:class:``FileConvention`.
+
+"""
 
 import os
 import copy
