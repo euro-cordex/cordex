@@ -25,6 +25,9 @@ class Cordex(conv.FileConvention):
                           'experiment_id', 'ensemble', 'model_id', 'rcm_version_id'  , \
                           'frequency', 'timerange']
         self.suffix    = '.nc'
+        self.conv_str  = '{variable}_{CORDEX_domain}_{driving_model_id}_{experimend_id}_' \
+                         '{ensemble}_{model_id_rcm}_{version_id}_{frequency}_' \
+                         '{startdate}-{enddate}.{suffix}'
 
 
 # cmip5 ESGF example
@@ -42,6 +45,8 @@ class CMIP5(conv.FileConvention):
                           'date', 'variable']
         self.file_conv = ['variable', 'frequency', 'model_id', 'experiment_id'  , \
                           'ensemble', 'timerange']
+        self.conv_str  = '{variable}_{frequency}_{model_id}_{experimend_id}_' \
+                         '{ensemble}_{startdate}-{enddate}.{suffix}'
         self.suffix    = '.nc'
 
 
@@ -88,9 +93,9 @@ class _ConventionFactory(object):
 #cf_name                 = 'orog'
 
 
-def select(project_id, root='', filter={}):
+def select(project_id, **kwargs):
     convention = _ConventionFactory.get_convention(project_id)
-    return conv.select_files(convention, root, filter)
+    return conv.select_files(convention, **kwargs)
 
 
 def conventions():
