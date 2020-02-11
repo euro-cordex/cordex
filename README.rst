@@ -20,6 +20,8 @@ Description
 
 A longer description of your project goes here...
 
+There is not much implemented yet, but this repository is meant to be a start for collaboration.
+
 
 Note
 ====
