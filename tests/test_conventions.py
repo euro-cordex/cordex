@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+# flake8: noqa
 import pytest
 import os
 from cordex.conventions import FileNameConvention, FilePathConvention
