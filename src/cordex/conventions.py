@@ -12,7 +12,7 @@ import glob
 import pandas as pd
 import logging
 from parse import parse
-from pathlib import Path
+from pathlib import Path, PurePath
 from cordex import __version__
 
 __author__ = "Lars Buntemeyer"
@@ -28,6 +28,8 @@ class NamingConvention():
 
 
 class FileNameConvention(NamingConvention):
+    """creates and parse filenames according to a convention.
+    """
 
     def __init__(self, conv_str='', any_str='*'):
         NamingConvention.__init__(self)
@@ -38,9 +40,13 @@ class FileNameConvention(NamingConvention):
         self.defaults    = {attr:self.any_str for attr in self.attr_names}
 
     def parse(self, filename):
-        return parse(self.conv_str, Path(filename).name).named
+        """Parses a filename and returns attributes.
+        """
+        return parse(self.conv_str, os.path.basename(filename)).named
 
-    def filename(self, any_str=None, **kwargs):
+    def pattern(self, any_str=None, **kwargs):
+        """Creates a filename pattern from attributes.
+        """
         if any_str is None:
             any_str = self.any_str
             defaults = self.defaults
@@ -52,6 +58,8 @@ class FileNameConvention(NamingConvention):
 
 
 class FilePathConvention(NamingConvention):
+    """creates and parse pathes according to a convention.
+    """
 
     def __init__(self, conv_list=[], root='', any_str='*'):
         NamingConvention.__init__(self)
@@ -60,7 +68,7 @@ class FilePathConvention(NamingConvention):
         self.conv_list = conv_list
 
     def _build_str(self, keys, any_str=None, **kwargs):
-        """creates a list of strings from default attributes
+        """creates a list of strings from attributes
         and keyword arguments according to a convention list.
         """
         build_str = []
@@ -75,161 +83,100 @@ class FilePathConvention(NamingConvention):
         return build_str
 
     @property
-    def path_conv(self):
+    def conv_str(self):
+        """Returns a string describing the path convention.
+        """
         return os.path.join(*self.conv_list)
 
     def parse(self, path):
+        """Parses a path and returns attributes.
+        """
+        if self.root:
+            path = str(PurePath(path).relative_to(self.root))
         values = path.split(os.sep)
         if len(values) != len(self.conv_list):
-            print('path convention is: {}'.format(self.path_conv))
+            print('path convention is: {}'.format(self.conv_str))
             raise Exception('path does not conform to convention: {}'.format(path))
         else:
             return dict(zip(self.conv_list,path.split(os.sep)))
 
-    def path(self, **kwargs):
-        """Build a path.
-
-        Adding a slash at the end here to avoid file results.
+    def pattern(self, root=None, **kwargs):
+        """Creates a path pattern from attributes.
         """
+        if root is None:
+            root = self.root
         build_str = self._build_str(self.conv_list, **kwargs)
-        return os.path.join(self.root, *build_str)
-
+        return os.path.join(root, *build_str)
 
 
 class FileConvention(object):
-    """This class defines a file naming convention.
+    """Combines a path and filename convention.
 
-    This class defines conventions for a path and filename and
-    adds functions to build a path and filename.
-
+    This class combines the :class:`FilePathConvention` and
+    :class:`FileNameConvention` into a fill filename with path
+    convention.
     """
 
-    def __init__(self, root='', defaults={}):
-        self.root      = root
-        self.defaults  = defaults
-        self.name      = ''
-        self.suffix    = ''
-        self.path_conv = []
-        self.file_conv = []
-        self.file_sep  = '_'
-        self.date_sep  = '-'
-        self.conv_str  = ''
+    def __init__(self, path_conv=None, filename_conv=None):
+        self.path_conv     = path_conv
+        self.filename_conv = filename_conv
 
-    @staticmethod
-    def name():
-       return self.name
-
-    def _build_str(self, keys, anystr='*', **kwargs):
-        """creates a list of strings from default attributes
-        and keyword arguments according to a convention list.
+    @property
+    def root(self):
+        """Sets the root of the path convention.
         """
-        build_str = []
-        for key in keys:
-            if key in kwargs:
-                fill = kwargs[key]
-            elif key in self.defaults:
-                fill = self.defaults[key]
-            else:
-                fill = anystr
-            build_str.append(fill)
-        return build_str
+        return self.path_conv.root
 
-    def parse(self, filename):
-        return parse(self.conv_str, Path(filename).name).named
-
-    def filename(self, attrs):
-        return self.conv_str.format(**attrs)
-
-    def path(self, **kwargs):
-        """Build a path.
-
-        Adding a slash at the end here to avoid file results.
+    @root.setter
+    def root(self, root):
+        """Returns the root of the path convention.
         """
-        build_str = self._build_str(self.path_conv, **kwargs)
-        return os.path.join(self.root, *build_str)
+        self.path_conv.root = root
 
-    def file(self, **kwargs):
-        """Build a filename.
+    def parse(self, file):
+        """Parses a file including path and filename and returns attributes.
         """
-        build_str = self._build_str(self.file_conv, **kwargs)
-        return self.file_sep.join(build_str) + self.suffix
+        path_attrs     = self.path_conv.parse(os.path.dirname(file))
+        filename_attrs = self.filename_conv.parse(os.path.basename(file))
+        path_attrs.update(filename_attrs)
+        return path_attrs
 
     def filename(self, **kwargs):
-        """Build a full path including filename.
+        """Create a filename pattern.
         """
-        return os.path.join(self.path(**kwargs), self.file(**kwargs))
+        return self.filename_conv.pattern(**kwargs)
 
-
-class StringAttributes(object):
-    """Derives attributes from a string using a separator.
-
-    This class derives attributes from a string by
-    splitting it using a separator and storing them as
-    attributes using a list of attributes to look for.
-    """
-    def __init__(self, str, attrs, sep):
-        self.sep   = sep
-        self.attrs = attrs
-        values = str.split(self.sep)[-len(attrs):]
-        self._init_attributes(attrs, values)
-
-    def _init_attributes(self, attrs, values):
-        """Creates attributes and values
+    def path(self, root=None, **kwargs):
+        """Creates path pattern.
         """
-        for attr, value in zip(attrs, values):
-            self.__setattr__(attr, value)
+        if root is None:
+            root = self.root
+        return self.path_conv.pattern(root, **kwargs)
 
-    def attributes(self):
-        return {key:getattr(self,key) for key in self.attrs}
+    def pattern(self, root=None, **kwargs):
+        """Creates path and filename pattern.
+        """
+        if root is None:
+            root = self.root
+        return os.path.join(self.path(root=root,**kwargs),self.filename(**kwargs))
 
-
-class PathAttributes(StringAttributes):
-    """Derives attributes from a system path.
-
-    This class derives attributes from a filename by
-    splitting it using a separator.
-    """
-    def __init__(self, path, attrs):
-        StringAttributes.__init__(self, path, attrs, os.sep)
-
-
-class FileAttributes(StringAttributes):
-    """Derives attributes from a filename.
-
-    This class derives attributes from a filename by
-    splitting it using a separator.
-    """
-    def __init__(self, file, attrs, sep):
-        file_stem   = Path(file).stem
-        self.suffix = Path(file).suffix
-        StringAttributes.__init__(self, file_stem, attrs, sep)
-        self.startdate = self.timerange.split('-')[0]
-        self.enddate   = self.timerange.split('-')[1]
-        self.attrs += (['startdate', 'enddate'])
-        #print(self.attrs)
-
-    def attributes(self):
-        return {key:getattr(self,key) for key in self.attrs}
 
 
 class FileSelection(object):
-    """Creates a pandas DataFrame object.
+    """Creates a pandas DataFrame of file attributes.
 
     The pandas Dataframe holds a list of files
     that fullfill a convention and stores attributes
     derived from the filename and path.
     """
 
-    def __init__(self, convention, pathes=[], ignore_path=False):
+    def __init__(self, convention, files, ignore_path=False):
         self.convention = convention
-        self.pathes = pathes
-        self.ignore_path = ignore_path
-        self.datapathes = []
-        self.files = []
+        self.files  = files
         self.fdict   = {}
         self.pdict   = {}
         self.df  = pd.DataFrame()
-        self._init_files()
+        self._parse()
 
     def __str__(self):
         text = ''
@@ -240,9 +187,6 @@ class FileSelection(object):
     def attributes(self):
         for key in self.df:
             print('attribute {}, found {}'.format(key,self.df[key].unique()))
-       # print(pd.DataFrame({key:self.df[key].unique() for key in self.df}))
-#         print(pd.DataFrame({'variable':self.df['variable'].unique()}))
-
 
     def __getitem__(self, key):
         return self.df[key]
@@ -250,39 +194,28 @@ class FileSelection(object):
     def __iter__(self):
         return iter(self.df)
 
-    def _init_files(self):
-        for path in self.pathes:
-            _logger.debug('selecting path: {}'.format(path))
-            if not os.path.isdir(path):
-                _logger.warning('ignoring {}'.format(path))
+    def _parse(self):
+        for f in self.files:
+            _logger.debug('parsing file: {}'.format(f))
+            if not os.path.isfile(f):
+                _logger.warning('ignoring {}'.format(f))
                 continue
-            if not self.ignore_path:
-                pattrs = PathAttributes(path, self.convention.path_conv)
-                self.datapathes.append(pattrs)
-                self.pdict[path] = pattrs.attributes()
-            else:
-                self.pdict[path] = {}
-            files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-            for f in files:
-                #fattrs = FileAttributes(f, self.convention.file_conv, self.convention.file_sep)
-                fattrs = self.convention.parse(f)
-                self.files.append(fattrs)
-                self.fdict[f] = fattrs #.attributes()
-                self.fdict[f].update(self.pdict[path])
-                df = pd.DataFrame(self.fdict[f], index=[os.path.join(path,f)])
-                self.df = pd.concat([self.df, df])
+            attrs = self.convention.parse(f)
+            df = pd.DataFrame(attrs, index=[f])
+            self.df = pd.concat([self.df, df])
 
 
-def select_files(convention, root='', filter={}, ignore_path=False):
+
+def select_files(convention, filter={}, root=None, ignore_path=False):
     """Top level function to create a :class:`FileSection` instance.
 
     This function creates a :class:`FileSelection` instance
     using a file naming convention of type :class:``FileConvention`.
     """
-    convention.root = root
-    convention.defaults = filter
-    pattern = convention.path()
-    _logger.info('looking for files in: {}'.format(pattern))
-    pathes = glob.glob(pattern)
-    return FileSelection(convention, pathes, ignore_path)
+    if root:
+        convention.root = root
+    pattern = convention.pattern(**filter)
+    _logger.info('looking for files: {}'.format(pattern))
+    files = glob.glob(pattern)
+    return FileSelection(convention, files, ignore_path)
 

@@ -4,9 +4,6 @@ import pytest
 import os
 from cordex.conventions import FileNameConvention, FilePathConvention
 
-# work around since travis does not install pandas properly!
-os.system('pip install pandas')
-
 __author__ = "Lars Buntemeyer"
 __copyright__ = "Lars Buntemeyer"
 __license__ = "mit"
@@ -23,12 +20,12 @@ def test_filename_convention():
     assert attrs['startdate'] == '20150101'
     assert attrs['enddate'] == '20151231'
     assert attrs['suffix'] == 'nc'
-    print(conv.filename(**attrs))
-    assert conv.filename(**attrs) == filename
-    assert conv.filename(model='REMO2015') == 'REMO2015_*_*-*.*'
-    print(conv.filename(model='REMO2015', any_str='MISSING'))
+    print(conv.pattern(**attrs))
+    assert conv.pattern(**attrs) == filename
+    assert conv.pattern(model='REMO2015') == 'REMO2015_*_*-*.*'
+    print(conv.pattern(model='REMO2015', any_str='MISSING'))
     print(conv.defaults)
-    assert conv.filename(model='REMO2015', any_str='MISSING') == 'REMO2015_MISSING_MISSING-MISSING.MISSING'
+    assert conv.pattern(model='REMO2015', any_str='MISSING') == 'REMO2015_MISSING_MISSING-MISSING.MISSING'
 
 
 def test_filepath_convention():
@@ -36,15 +33,15 @@ def test_filepath_convention():
     path      = 'REMO2015/EUR-11/pr'
     root      = '/root_dir'
     conv = FilePathConvention(conv_list, root)
-    attrs = conv.parse(path)
+    attrs = conv.parse(os.path.join(root,path))
     print('attrs: {}'.format(attrs))
-    print('conv.path_conv: {}'.format(conv.path_conv))
-    assert conv.path_conv == 'model/domain/variable'
+    print('conv.path_conv: {}'.format(conv.conv_str))
+    assert conv.conv_str == 'model/domain/variable'
     assert attrs['model']  == 'REMO2015'
     assert attrs['domain'] == 'EUR-11'
     assert attrs['variable'] == 'pr'
-    print(conv.path(**attrs))
-    print(conv.path(model='REMO2015', any_str='MISSING'))
+    print(conv.pattern(**attrs))
+    print(conv.pattern(model='REMO2015', any_str='MISSING'))
 
 
 if __name__ == '__main__':

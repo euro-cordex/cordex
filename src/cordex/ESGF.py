@@ -22,19 +22,17 @@ from . import conventions as conv
 
 class Cordex(conv.FileConvention):
 
-    def __init__(self, root='', defaults={}):
-        conv.FileConvention.__init__(self, root, defaults)
+    def __init__(self, root=''):
         self.name      = 'CORDEX'
-        self.path_conv = ['product','CORDEX_domain','institute_id','driving_model_id', \
+        path_list = ['product','CORDEX_domain','institute_id','driving_model_id', \
                           'experiment_id', 'ensemble', 'model_id', 'rcm_version_id'  , \
                           'frequency', 'variable', 'date']
-        self.file_conv = ['variable','CORDEX_domain','driving_model_id', \
-                          'experiment_id', 'ensemble', 'model_id', 'rcm_version_id'  , \
-                          'frequency', 'timerange']
-        self.suffix    = '.nc'
-        self.conv_str  = '{variable}_{CORDEX_domain}_{driving_model_id}_{experimend_id}_' \
+        conv_str  = '{variable}_{CORDEX_domain}_{driving_model_id}_{experimend_id}_' \
                          '{ensemble}_{model_id_rcm}_{version_id}_{frequency}_' \
                          '{startdate}-{enddate}.{suffix}'
+        path_conv      = conv.FilePathConvention(path_list, root=root)
+        filename_conv  = conv.FileNameConvention(conv_str)
+        conv.FileConvention.__init__(self, path_conv, filename_conv)
 
 
 # cmip5 ESGF example
