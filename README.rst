@@ -1,10 +1,10 @@
 .. image:: https://readthedocs.org/projects/cordex/badge/?version=latest
     :alt: Documentation Status
     :target: https://cordex.readthedocs.io/en/latest/?badge=latest
-.. image:: https://travis-ci.org/euro-cordex/cordex.svg?branch=master
+.. image:: https://travis-ci.org/euro-cordex/cordex.svg?branch=develop
     :target: https://travis-ci.org/euro-cordex/cordex
-.. image:: https://coveralls.io/repos/github/euro-cordex/cordex/badge.svg?branch=master
-    :target: https://coveralls.io/github/euro-cordex/cordex?branch=master
+.. image:: https://coveralls.io/repos/github/euro-cordex/cordex/badge.svg?branch=develop
+    :target: https://coveralls.io/github/euro-cordex/cordex?branch=develop
 
 
 ======
