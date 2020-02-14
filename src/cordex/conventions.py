@@ -2,8 +2,7 @@
 # flake8: noqa
 """conventions module
 
-This module defines file naming conventions in the
-:class:``FileConvention`.
+This module defines file naming conventions in the :class:`FileConvention`.
 
 """
 

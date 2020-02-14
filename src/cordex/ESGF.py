@@ -1,9 +1,18 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
-"""conventions module
+"""ESGF convenESGF conventionss module
 
-This module defines file naming conventions in the
-:class:``FileConvention`.
+This module defines common ESGF path and filename conventions.
+
+Example:
+
+    To get an index from the :class:`RotatedGrid`, you just need to import it.
+    To get a list of available implementations, you can call, e.g.,::
+
+        from cordex import ESGF
+        print(ESGF.conventions())
+
+The main interface function is `select_files`.
 
 """
 
