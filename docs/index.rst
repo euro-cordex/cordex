@@ -23,6 +23,9 @@ This is the documentation of **cordex**.
     `Google style`_ (recommended!), `NumPy style`_ and `classical style`_.
 
 
+.. include:: ../README.rst
+
+
 Contents
 ========
 
