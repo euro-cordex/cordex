@@ -37,7 +37,15 @@ If you want to contribute, I recommend cloning the repository and installing the
     cd cordex
     pip install -e .
     
-This will install the package but you can still edit it!
+This will install the package but you can still edit it and you don't need the package in your `PYTHONPATH`
+
+Requirements
+============
+
+python3.6 or higher
+numpy
+pandas
+parse
 
 Note
 ====
