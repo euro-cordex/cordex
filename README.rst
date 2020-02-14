@@ -42,10 +42,11 @@ This will install the package but you can still edit it and you don't need the p
 Requirements
 ============
 
-python3.6 or higher
-numpy
-pandas
-parse
+* python3.6 or higher
+* numpy
+* pandas
+* parse
+
 
 Note
 ====
