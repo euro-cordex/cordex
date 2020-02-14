@@ -32,7 +32,8 @@ ESGF_CONVS = { 'CORDEX': {'path': cordex_path_list, 'file': cordex_conv_str},
 
 
 class CORDEX(conv.FileConvention):
-
+    """Implements CORDEX path and filename conventions.
+    """
     name      = 'CORDEX'
 
     def __init__(self, root=None):
@@ -43,7 +44,8 @@ class CORDEX(conv.FileConvention):
 
 
 class CMIP5(conv.FileConvention):
-
+    """Implements CMIP5 path and filename conventions.
+    """
     name      = 'CMIP5'
 
     def __init__(self, root=None):
@@ -90,15 +92,21 @@ class _ConventionFactory(object):
 
 
 def select_files(project_id, filter={}, root=None, **kwargs):
+    """Creates a file selection containing attributes.
+    """
     convention = get_convention(project_id, root=root)
     return conv.select_files(convention, filter, root, **kwargs)
 
 
 def conventions():
+    """Lists available ESGF conventions.
+    """
     return _ConventionFactory.names()
 
 
 def get_convention(name, root=None):
+    """Returns a ESGS convention instance.
+    """
     return _ConventionFactory.get_convention(name)(root=root)
 
 
