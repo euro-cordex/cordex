@@ -25,6 +25,7 @@ Installation
 ============
 
 You can install the package directly from github using pip:
+
 .. code-block::
 
     pip install https://github.com/euro-cordex/cordex
