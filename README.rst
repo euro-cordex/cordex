@@ -18,9 +18,16 @@ cordex python package
 Description
 ===========
 
-A longer description of your project goes here...
-
 There is not much implemented yet, but this repository is meant to be a start for collaboration.
+
+
+Installation
+============
+
+You can install the package directly from github using pip:
+.. code-block::
+
+    pip install https://github.com/euro-cordex/cordex
 
 
 Note
