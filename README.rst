@@ -3,8 +3,8 @@
     :target: https://cordex.readthedocs.io/en/latest/?badge=latest
 .. image:: https://travis-ci.org/euro-cordex/cordex.svg?branch=master
     :target: https://travis-ci.org/euro-cordex/cordex
-.. image:: https://coveralls.io/repos/github/euro-cordex/cordex/badge.svg
-    :target: https://coveralls.io/github/euro-cordex/cordex
+.. image:: https://coveralls.io/repos/github/euro-cordex/cordex/badge.svg?branch=master
+    :target: https://coveralls.io/github/euro-cordex/cordex?branch=master
 
 
 ======
