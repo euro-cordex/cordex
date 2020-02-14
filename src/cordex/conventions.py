@@ -61,9 +61,12 @@ class FilePathConvention(NamingConvention):
     """creates and parse pathes according to a convention.
     """
 
-    def __init__(self, conv_list=[], root='', any_str='*'):
+    def __init__(self, conv_list=[], root=None, any_str='*'):
         NamingConvention.__init__(self)
-        self.root      = root
+        if root is None:
+            self.root = ''
+        else:
+            self.root = root
         self.any_str   = any_str
         self.conv_list = conv_list
 
