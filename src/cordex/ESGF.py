@@ -19,6 +19,7 @@ The main interface function is `select_files`.
 import os
 import copy
 import logging
+import datetime as dt
 
 from . import conventions as conv
 
@@ -39,6 +40,50 @@ ESGF_CONVS = { 'CORDEX': {'path': cordex_path_list, 'file': cordex_conv_str},
                'CMIP5' : {'path': cmip5_path_list,  'file': cmip5_conv_str}  }
 
 
+date_fmt = '%Y%m'
+# 12: 1hr, 3hr
+# 10: 6hr
+#  8: day
+#  6: sem, mon
+date_fmts = {12:'%Y%m%d%H%M', 10:'%Y%m%d%H', 8:'%Y%m%d', 6:'%Y%m'}
+date_fmts_by_freq = {12:'%Y%m%d%H%M', 10:'%Y%m%d%H', 8:'%Y%m%d', 6:'%Y%m'}
+
+date_fmts = {'1hr': '%Y%m%d%H%M', '3hr': '%Y%m%d%H%M',
+             '6hr': '%Y%m%d%H'  , 'day': '%Y%m%d',
+             'sem': '%Y%m'      , 'mon': '%Y%m', }
+
+
+def parse_date(date_str, freq):
+    return dt.datetime.strptime(date_str, date_fmts[freq])
+
+def format_date(date, freq):
+    return date.strftime(date_fmts[freq])
+
+date_formatter = conv.Formatter('date', fmt=date_fmt, parser=parse_date)
+
+formatters = {'startdate':date_formatter}
+
+
+class ESFG
+
+
+class CORDEXFileNameConvention(conv.FileNameConvention):
+
+    def __init__(self, *args, **kwargs):
+        conv.FileNameConvention.__init__(self, *args, **kwargs)
+
+    def parse_attrs(self, attrs):
+        attrs['startdate'] = parse_date(attrs['startdate'], attrs['frequency'])
+        attrs['enddate']   = parse_date(attrs['enddate'], attrs['frequency'])
+        return attrs
+
+    def format_attrs(self, attrs, any_str):
+        if isinstance(attrs['startdate'], dt.datetime):
+            attrs['startdate'] = format_date(attrs['startdate'], attrs['frequency'])
+        if isinstance(attrs['enddate'], dt.datetime):
+            attrs['enddate']   = format_date(attrs['enddate'], attrs['frequency'])
+        return attrs
+
 
 class CORDEX(conv.FileConvention):
     """Implements CORDEX path and filename conventions.
@@ -47,8 +92,9 @@ class CORDEX(conv.FileConvention):
 
     def __init__(self, root=None):
         path_conv      = conv.FilePathConvention(cordex_path_list, root=root)
-        filename_conv  = conv.FileNameConvention(cordex_conv_str)
+        filename_conv  = CORDEXFileNameConvention(cordex_conv_str, formatters=None)
         conv.FileConvention.__init__(self, path_conv, filename_conv)
+        filename_conv
 
 
 
@@ -59,7 +105,7 @@ class CMIP5(conv.FileConvention):
 
     def __init__(self, root=None):
         path_conv      = conv.FilePathConvention(cmip5_path_list, root=root)
-        filename_conv  = conv.FileNameConvention(cmip5_conv_str)
+        filename_conv  = conv.FileNameConvention(cmip5_conv_str, formatters=None)
         conv.FileConvention.__init__(self, path_conv, filename_conv)
 
 

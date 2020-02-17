@@ -11,6 +11,7 @@ import glob
 import pandas as pd
 import logging
 from parse import parse
+import string
 from pathlib import Path, PurePath
 from cordex import __version__
 
@@ -26,22 +27,53 @@ class NamingConvention():
         pass
 
 
+class Formatter(object):
+
+    def __init__(self, name, fmt=None, parser=None):
+        self.name   = name
+        self.fmt    = fmt
+        self.parser = parser
+        if self.parser:
+            self.parse_dict = {self.name:self.parser}
+        else:
+            self.parse_dict = None
+
+    def parse(self, s):
+        return parse('{:'+self.name+'}' , s, self.parse_dict).fixed
+
+    def format(self, fill):
+        return ('{:'+self.fmt+'}').format(fill)
+
+
 class FileNameConvention(NamingConvention):
     """creates and parse filenames according to a convention.
     """
 
-    def __init__(self, conv_str='', any_str='*'):
+    def __init__(self, conv_str='', any_str='*', formatters=None):
         NamingConvention.__init__(self)
         self.conv_str    = conv_str
         self.any_str     = any_str
         # save the attribtes from the convention str
-        self.attr_names  = parse(self.conv_str, self.conv_str).named.keys()
+        #self.attr_names  = parse(self.conv_str, self.conv_str, self.parse_dict).named.keys()
+        self.attr_names = [t[1] for t in string.Formatter().parse(conv_str) if t[1] is not None]
         self.defaults    = {attr:self.any_str for attr in self.attr_names}
+        self.formatters  = formatters
+        if formatters is None:
+            self.formatters = {}
+
+    def parse_attrs(self, attrs):
+        return attrs
+
+    def format_attrs(self, attrs, any_str):
+        return attrs
 
     def parse(self, filename):
         """Parses a filename and returns attributes.
         """
-        return parse(self.conv_str, os.path.basename(filename)).named
+        attrs = parse(self.conv_str, os.path.basename(filename)).named
+        attrs = self.parse_attrs(attrs)
+        return attrs
+
 
     def pattern(self, any_str=None, **kwargs):
         """Creates a filename pattern from attributes.
@@ -53,6 +85,7 @@ class FileNameConvention(NamingConvention):
             defaults = {attr:any_str for attr in self.attr_names}
         attrs_dict = defaults.copy()
         attrs_dict.update(kwargs)
+        attrs_dict = self.format_attrs(attrs_dict, any_str)
         return self.conv_str.format(**attrs_dict)
 
 
