@@ -19,6 +19,8 @@ The main interface function is `select_files`.
 import os
 import copy
 import logging
+import datetime as dt
+import pandas as pd
 
 from . import conventions as conv
 
@@ -39,6 +41,57 @@ ESGF_CONVS = { 'CORDEX': {'path': cordex_path_list, 'file': cordex_conv_str},
                'CMIP5' : {'path': cmip5_path_list,  'file': cmip5_conv_str}  }
 
 
+UNIQUE = ['product', 'CORDEX_comdain', 'institute_id', 'driving_model_id', 'experimentd_id',
+          'ensemble', 'model_id', 'rcm_version_id', 'frequency', 'variable', 'date', 'realm',
+          'rfrequency', 'variable']
+
+#date_fmt = '%Y%m'
+# 12: 1hr, 3hr
+# 10: 6hr
+#  8: day
+#  6: sem, mon
+date_fmts = {12:'%Y%m%d%H%M', 10:'%Y%m%d%H', 8:'%Y%m%d', 6:'%Y%m', 4:'%Y'}
+
+
+## define date string formats depending on frequency
+#date_fmts = {'1hr'    : '%Y%m%d%H%M'  , '3hr' : '%Y%m%d%H%M',
+#             '6hr'    : '%Y%m%d%H'    , 'day' : '%Y%m%d',     'cfDay': '%Y%m%d',
+#             'sem'    : '%Y%m'        , 'mon' : '%Y%m',       'cfMon': '%Y%m',
+#             '6hrPlev': '%Y%m%d%H'    , 'Amon': '%Y%m',
+#             '6hrPlev': '%Y%m%d%H'    , 'Omon': '%Y%m'  }
+
+
+def parse_date(date_str):
+    #return dt.datetime.strptime(date_str, date_fmts[freq])
+    return dt.datetime.strptime(date_str, date_fmts[len(date_str)])
+
+def format_date(date, freq):
+    return date.strftime(date_fmts[freq])
+
+#date_formatter = conv.Formatter('date', fmt=date_fmt, parser=parse_date)
+
+#formatters = {'startdate':date_formatter}
+
+
+
+class ESGFFileNameConvention(conv.FileNameConvention):
+
+    def __init__(self, *args, **kwargs):
+        conv.FileNameConvention.__init__(self, *args, **kwargs)
+
+    #def parse_attrs(self, attrs):
+    #    print(attrs)
+    #    attrs['startdate'] = parse_date(attrs['startdate'], attrs['frequency'])
+    #    attrs['enddate']   = parse_date(attrs['enddate'], attrs['frequency'])
+    #    return attrs
+
+    #def format_attrs(self, attrs, any_str):
+    #    if isinstance(attrs['startdate'], dt.datetime):
+    #        attrs['startdate'] = format_date(attrs['startdate'], attrs['frequency'])
+    #    if isinstance(attrs['enddate'], dt.datetime):
+    #        attrs['enddate']   = format_date(attrs['enddate'], attrs['frequency'])
+    #    return attrs
+
 
 class CORDEX(conv.FileConvention):
     """Implements CORDEX path and filename conventions.
@@ -47,7 +100,7 @@ class CORDEX(conv.FileConvention):
 
     def __init__(self, root=None):
         path_conv      = conv.FilePathConvention(cordex_path_list, root=root)
-        filename_conv  = conv.FileNameConvention(cordex_conv_str)
+        filename_conv  = ESGFFileNameConvention(cordex_conv_str, formatters=None)
         conv.FileConvention.__init__(self, path_conv, filename_conv)
 
 
@@ -59,7 +112,7 @@ class CMIP5(conv.FileConvention):
 
     def __init__(self, root=None):
         path_conv      = conv.FilePathConvention(cmip5_path_list, root=root)
-        filename_conv  = conv.FileNameConvention(cmip5_conv_str)
+        filename_conv  = ESGFFileNameConvention(cmip5_conv_str, formatters=None)
         conv.FileConvention.__init__(self, path_conv, filename_conv)
 
 
@@ -100,6 +153,56 @@ class _ConventionFactory(object):
            return convention
 
 
+
+class ESGFFileSelection(conv.FileSelection):
+    """Holds a Pandas Dataframe object.
+
+    The :class:`ESGFFileSelection` holds and manages a Pandas
+    Dataframe instance. It defines some common methods to work
+    with ESGF netcdf files.
+    """
+    def __init__(self, *args, **kwargs):
+        conv.FileSelection.__init__(self, *args, **kwargs)
+
+    def subset(self, **kwargs):
+        """Create a subset by filtering attributes.
+        """
+        return ESGFFileSelection(super().subset(**kwargs).df)
+
+    def to_datetime(self):
+        """Converts the date columns to datetime objects.
+
+        The date columns (startdate, enddate) are converted to datetime
+        objects depending on the lenght of the date string.
+
+        Returns:
+             :class:`ESGFFileSelection`: selection converted date columns.
+        """
+        df = self.df
+        for index, row in df.iterrows():
+            row['startdate'] = parse_date(row['startdate'])
+            row['enddate']   = parse_date(row['enddate'])
+        return ESGFFileSelection(df)
+
+    def select_timerange(self, time_range):
+        """Returns a selected timerange.
+
+        Args:
+            time_range (tuple): Tuple that contains a startdate
+                and enddate in datetime format.
+
+        Returns:
+             :class:`ESGFFileSelection`: selection within time range.
+
+        """
+        df = self.df[(self.df['startdate'] >= time_range[0]) & (self.df['startdate'] < time_range[1])]
+        return ESGFFileSelection(df)
+
+    @property
+    def timerange(self):
+        return (min(self.df['startdate']), max(self.df['enddate']))
+
+
 def select_files(project_id, filter={}, root=None, **kwargs):
     """Creates a file selection containing attributes.
     """
@@ -107,16 +210,61 @@ def select_files(project_id, filter={}, root=None, **kwargs):
     return conv.select_files(convention, filter, root, **kwargs)
 
 
+def file_selection_from_scratch():
+    pass
+
+def file_selection_from_csv(filename):
+    return ESGFFileSelection(pd.from_csv(filename))
+
+def get_selection(convention_id, filter={}, root=None, **kwargs):
+    """Top level function to create a :class:`ESGFFileSelection` instance.
+
+    This function creates a :class:`FileSelection` instance
+    using a file naming convention of type :class:``FileConvention`.
+
+    Args:
+        convention_id (str): The name of the convention.
+        filter (dict): Defines attributes to filer the search.
+        root (str): The root directory where the convention holds.
+
+    Returns:
+        :class:`ESGFFileSelection` object.
+
+    """
+    convention = get_convention(convention_id, root=root)
+    files      = conv.select_files(convention, filter, root, **kwargs)
+    df         = conv.make_df(convention, files)
+    return ESGFFileSelection(df)
+
+
 def conventions():
     """Lists available ESGF conventions.
+
+    Returns:
+        List of available ESGF convention ids.
     """
     return _ConventionFactory.names()
 
 
 def get_convention(name, root=None):
     """Returns a ESGS convention instance.
+
+    Args:
+        name (str): The convention id.
+
+    Returns:
+        :class:`ESGFFileConvention` object.
     """
     return _ConventionFactory.get_convention(name)(root=root)
+
+
+def unique(df):
+    for column, data in df.items():
+        column_in_unique = column in UNIQUE
+        data_unique      = len(data.unique())==1
+        if column_in_unique and not data_unique:
+            return False
+    return True
 
 
 def iterdict(d):
