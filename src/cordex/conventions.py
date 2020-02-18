@@ -9,6 +9,7 @@ This module defines file naming conventions in the :class:`FileConvention`.
 import os
 import glob
 import pandas as pd
+import numpy as np
 import logging
 from parse import parse
 import string
@@ -198,20 +199,21 @@ class FileConvention(object):
 
 
 class FileSelection(object):
-    """Creates a pandas DataFrame of file attributes.
+    """Holds a pandas DataFrame of file attributes.
 
     The pandas Dataframe holds a list of files
     that fullfill a convention and stores attributes
     derived from the filename and path.
     """
 
-    def __init__(self, convention, files, ignore_path=False):
-        self.convention = convention
-        self.files  = files
-        self.fdict   = {}
-        self.pdict   = {}
-        self.df  = pd.DataFrame()
-        self._parse()
+    def __init__(self, df):
+        self.df = df
+
+    def subset(self, **kwargs):
+        """Create a subset by filtering attributes.
+        """
+        df = self.df[np.logical_and.reduce([(self.df[i] == j) for i, j in kwargs.items()])]
+        return FileSelection(df)
 
     def __str__(self):
         text = ''
@@ -229,16 +231,22 @@ class FileSelection(object):
     def __iter__(self):
         return iter(self.df)
 
-    def _parse(self):
-        for f in self.files:
-            _logger.debug('parsing file: {}'.format(f))
-            if not os.path.isfile(f):
-                _logger.warning('ignoring {}'.format(f))
-                continue
-            attrs = self.convention.parse(f)
-            df = pd.DataFrame(attrs, index=[f])
-            self.df = pd.concat([self.df, df])
 
+def make_df(convention, files):
+    """Creates a Pandas DataFrame object from convention and files.
+
+    This function creates a Pandas DataFrame object by parsing a list
+    of files according to a convention of type :class:`FileConvention`.
+    """
+    df = pd.DataFrame()
+    for f in files:
+        _logger.debug('parsing file: {}'.format(f))
+        if not os.path.isfile(f):
+            _logger.warning('ignoring {}'.format(f))
+            continue
+        attrs = convention.parse(f)
+        df = pd.concat([df, pd.DataFrame(attrs, index=[f])])
+    return df
 
 
 def select_files(convention, filter={}, root=None, ignore_path=False):
@@ -250,7 +258,17 @@ def select_files(convention, filter={}, root=None, ignore_path=False):
     if root:
         convention.root = root
     pattern = convention.pattern(**filter)
-    _logger.info('looking for files: {}'.format(pattern))
-    files = glob.glob(pattern)
-    return FileSelection(convention, files, ignore_path)
+    logging.info('looking for files: {}'.format(pattern))
+    return glob.glob(pattern)
+
+
+def get_selection(convention, filter={}, root=None, ignore_path=False):
+    """Top level function to create a :class:`FileSection` instance.
+
+    This function creates a :class:`FileSelection` instance
+    using a file naming convention of type :class:``FileConvention`.
+    """
+    files = select_files(convention, filter, root, ignore_path)
+    df    = make_df(convention, files)
+    return FileSelection(df)
 
