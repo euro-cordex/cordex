@@ -155,23 +155,52 @@ class _ConventionFactory(object):
 
 
 class ESGFFileSelection(conv.FileSelection):
+    """Holds a Pandas Dataframe object.
 
+    The :class:`ESGFFileSelection` holds and manages a Pandas
+    Dataframe instance. It defines some common methods to work
+    with ESGF netcdf files.
+    """
     def __init__(self, *args, **kwargs):
         conv.FileSelection.__init__(self, *args, **kwargs)
 
     def subset(self, **kwargs):
+        """Create a subset by filtering attributes.
+        """
         return ESGFFileSelection(super().subset(**kwargs).df)
 
     def to_datetime(self):
+        """Converts the date columns to datetime objects.
+
+        The date columns (startdate, enddate) are converted to datetime
+        objects depending on the lenght of the date string.
+
+        Returns:
+             :class:`ESGFFileSelection`: selection converted date columns.
+        """
         df = self.df
         for index, row in df.iterrows():
             row['startdate'] = parse_date(row['startdate'])
             row['enddate']   = parse_date(row['enddate'])
         return ESGFFileSelection(df)
 
-    def get_timerange(self, time_range):
+    def select_timerange(self, time_range):
+        """Returns a selected timerange.
+
+        Args:
+            time_range (tuple): Tuple that contains a startdate
+                and enddate in datetime format.
+
+        Returns:
+             :class:`ESGFFileSelection`: selection within time range.
+
+        """
         df = self.df[(self.df['startdate'] >= time_range[0]) & (self.df['startdate'] < time_range[1])]
         return ESGFFileSelection(df)
+
+    @property
+    def timerange(self):
+        return (min(self.df['startdate']), max(self.df['enddate']))
 
 
 def select_files(project_id, filter={}, root=None, **kwargs):
@@ -181,10 +210,28 @@ def select_files(project_id, filter={}, root=None, **kwargs):
     return conv.select_files(convention, filter, root, **kwargs)
 
 
-def get_selection(project_id, filter={}, root=None, **kwargs):
-    """Creates a file selection containing attributes.
+def file_selection_from_scratch():
+    pass
+
+def file_selection_from_csv(filename):
+    return ESGFFileSelection(pd.from_csv(filename))
+
+def get_selection(convention_id, filter={}, root=None, **kwargs):
+    """Top level function to create a :class:`ESGFFileSelection` instance.
+
+    This function creates a :class:`FileSelection` instance
+    using a file naming convention of type :class:``FileConvention`.
+
+    Args:
+        convention_id (str): The name of the convention.
+        filter (dict): Defines attributes to filer the search.
+        root (str): The root directory where the convention holds.
+
+    Returns:
+        :class:`ESGFFileSelection` object.
+
     """
-    convention = get_convention(project_id, root=root)
+    convention = get_convention(convention_id, root=root)
     files      = conv.select_files(convention, filter, root, **kwargs)
     df         = conv.make_df(convention, files)
     return ESGFFileSelection(df)
@@ -192,12 +239,21 @@ def get_selection(project_id, filter={}, root=None, **kwargs):
 
 def conventions():
     """Lists available ESGF conventions.
+
+    Returns:
+        List of available ESGF convention ids.
     """
     return _ConventionFactory.names()
 
 
 def get_convention(name, root=None):
     """Returns a ESGS convention instance.
+
+    Args:
+        name (str): The convention id.
+
+    Returns:
+        :class:`ESGFFileConvention` object.
     """
     return _ConventionFactory.get_convention(name)(root=root)
 

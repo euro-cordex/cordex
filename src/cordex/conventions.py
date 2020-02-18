@@ -221,6 +221,9 @@ class FileSelection(object):
         text += str(self.df.describe())
         return text
 
+    def to_csv(self, filename):
+        self.df.to_csv(filename)
+
     def attributes(self):
         for key in self.df:
             print('attribute {}, found {}'.format(key,self.df[key].unique()))
@@ -250,10 +253,21 @@ def make_df(convention, files):
 
 
 def select_files(convention, filter={}, root=None, ignore_path=False):
-    """Top level function to create a :class:`FileSection` instance.
+    """Creates a file list by searching the filesystem.
 
-    This function creates a :class:`FileSelection` instance
-    using a file naming convention of type :class:``FileConvention`.
+    The file list is created by using a search pattern according to a
+    :class:`FileConvention`, :class:`FileNameConvention` or
+    :class:`FilePathConvention`.
+
+    Args:
+        convention (:class:`FileConvention`): The convention used for
+            browsing the file system.
+        filter (dict): Defines attributes to filer the search.
+        root (str): The root directory where the convention holds.
+
+    Returns:
+        List of full filenames.
+
     """
     if root:
         convention.root = root
@@ -263,10 +277,20 @@ def select_files(convention, filter={}, root=None, ignore_path=False):
 
 
 def get_selection(convention, filter={}, root=None, ignore_path=False):
-    """Top level function to create a :class:`FileSection` instance.
+    """Top level function to create a :class:`FileSelection` instance.
 
     This function creates a :class:`FileSelection` instance
     using a file naming convention of type :class:``FileConvention`.
+
+    Args:
+        convention (:class:`FileConvention`): The convention used for
+            browsing the file system.
+        filter (dict): Defines attributes to filer the search.
+        root (str): The root directory where the convention holds.
+
+    Returns:
+        :class:`FileSelection` object.
+
     """
     files = select_files(convention, filter, root, ignore_path)
     df    = make_df(convention, files)
