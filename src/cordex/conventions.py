@@ -218,7 +218,6 @@ class FileSelection(object):
     def __str__(self):
         text = ''
         text += str(self.df)
-        text += str(self.df.describe())
         return text
 
     def to_csv(self, filename):
