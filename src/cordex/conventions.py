@@ -227,6 +227,10 @@ class FileSelection(object):
         for key in self.df:
             print('attribute {}, found {}'.format(key,self.df[key].unique()))
 
+    @property
+    def file_list(self):
+        return list(self.df.index.values)
+
     def __getitem__(self, key):
         return self.df[key]
 
