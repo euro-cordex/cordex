@@ -35,10 +35,8 @@ def get_cf_table(version='70', url=CF_URL):
 #        lat:units = "degrees_north" ;
 
 
-cf_coordinates = \
-  {'rotated_pole' : {'grid_mapping_name':'rotated_latitude_lonitude',
-                     'grid_north_pole_latitude': None ,
-                     'grid_norht_pole_longitude': None },
+coords = \
+        {
    'rlon'         : {'axis': 'X',
                      'standard_name': 'grid_longitude',
                      'long_name'    : 'longitude in rotated pole grid',
@@ -54,5 +52,14 @@ cf_coordinates = \
    'lat'          : {
                      'standard_name': 'latitude',
                      'long_name'    : 'latitude',
-                     'units'        : 'degrees_north'}
-                     }
+                     'units'        : 'degrees_north'},
+   }
+
+mapping = \
+     { 'grid_mapping_name' : 'rotated_latitude_longitude',
+                     'grid_north_pole_latitude' : 90.,
+                     'grid_north_pole_longitude': 180.,
+                     'north_pole_grid_longitude': 0.}
+
+
+DEFAULT_MAPPING_NCVAR = 'rotated_latitude_longitude'

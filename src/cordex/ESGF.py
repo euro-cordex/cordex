@@ -206,7 +206,8 @@ class ESGFFileSelection(conv.FileSelection):
              :class:`ESGFFileSelection`: selection within time range.
 
         """
-        df = self.df[(self.df['startdate'] >= time_range[0]) & (self.df['startdate'] < time_range[1])]
+        logging.debug('selectin time range: {} tp {}'.format(time_range[0], time_range[1]))
+        df = self.df[(self.df['startdate'] <= time_range[0]) & (self.df['enddate'] >= time_range[1])]
         return ESGFFileSelection(df)
 
     @property
