@@ -133,7 +133,7 @@ class Domain():
         return attrs
 
 
-    def get_xarray_rotated(self, attrs=True):
+    def _get_xarray_rotated(self, attrs=True):
         rlon, rlat   = self.grid_rotated.coordinates
         da_rlon = xr.DataArray(data=rlon[0],   dims=self.dimnames[0])
         da_rlat = xr.DataArray(data=rlat[:,0], dims=self.dimnames[1])
@@ -143,7 +143,7 @@ class Domain():
         return da_rlon, da_rlat
 
 
-    def get_xarray_mapping(self, mapping_key):
+    def _get_xarray_mapping(self, mapping_key):
         da_mapping = xr.DataArray(np.empty((), dtype=np.int32))
         attrs = cf.mapping[mapping_key].copy()
         attrs['grid_north_pole_longitude'] = self.grid_rotated.pole[0]
@@ -152,7 +152,7 @@ class Domain():
         return da_mapping
 
 
-    def get_xarray_lonlat(self, attrs=True):
+    def _get_xarray_lonlat(self, attrs=True):
         lon, lat   = self.grid_lonlat.coordinates
         print(lon.shape)
         print(lat.shape)
@@ -164,7 +164,7 @@ class Domain():
         return da_lon, da_lat
 
 
-    def get_xarray_dataset(self, grid='', attrs=True, **kwargs):
+    def _get_xarray_dataset(self, grid='', attrs=True, **kwargs):
         coords       = {}
         global_attrs = {}
         data         = {}
@@ -198,11 +198,11 @@ class Domain():
 
     def get_dataset(self, filename, **kwargs):
         #self.get_xarray_dataset(grid).to_netcdf(filename, **kwargs)
-        return get_dataset(self, filename, **kwargs)
+        return _get_dataset(self, filename, **kwargs)
 
 
 
-class CFDataset():
+class _CFDataset():
 
 
     def __init__(self):
@@ -220,10 +220,10 @@ class CFDataset():
 
 
 
-class NC4Dataset(CFDataset):
+class _NC4Dataset(_CFDataset):
 
     def __init__(self):
-        CFDataset.__init__(self)
+        _CFDataset.__init__(self)
         self.ds = None
 
     def create(self, filename, mode=None, **kwargs):
@@ -271,7 +271,7 @@ class NC4Dataset(CFDataset):
         return self.ds
 
 
-class XrDataset(CFDataset):
+class _XrDataset(_CFDataset):
 
     def __init__(self):
         CFDataset.__init__(self)
@@ -331,14 +331,14 @@ class XrDataset(CFDataset):
         return da_lon, da_lat
 
 
-def get_dataset(domain, filename='', dummy=None, mapping_name=None, attrs=True):
-    return get_dataset_nc4(domain, filename, dummy, mapping_name, attrs)
+def _get_dataset(domain, filename='', dummy=None, mapping_name=None, attrs=True):
+    return _get_dataset_nc4(domain, filename, dummy, mapping_name, attrs)
 
 
-def get_dataset_nc4(domain, filename='', dummy=None, mapping_name=None, attrs=True):
+def _get_dataset_nc4(domain, filename='', dummy=None, mapping_name=None, attrs=True):
     if mapping_name is None:
         mapping_name = cf.DEFAULT_MAPPING_NCVAR
-    ds = NC4Dataset()
+    ds = _NC4Dataset()
     ds.create(filename)
     ds.add_pole(domain, mapping_name, cf.mapping.copy())
     x_coord, y_coord = ds.add_rlon_rlat(domain)
@@ -369,7 +369,7 @@ def get_dataset_nc4(domain, filename='', dummy=None, mapping_name=None, attrs=Tr
 
 
 
-def get_dataset_xr(domain, filename='', dummy=None, mapping_name=None, attrs=True):
+def _get_dataset_xr(domain, filename='', dummy=None, mapping_name=None, attrs=True):
     if mapping_name is None:
         mapping_name = cf.DEFAULT_MAPPING_NCVAR
     coords       = {}
@@ -503,3 +503,25 @@ def domains(table=None):
 
     """
     return _DomainFactory().names(table)
+
+
+def table(name):
+    """Top level function that returns a CORDEX table.
+
+    Args:
+      name (str): name of the CORDEX table.
+
+    Returns:
+      table (DataFrame): Cordex table.
+
+    """
+    return TABLES[name]
+
+def tables():
+    """Top level function that returns a list of available CORDEX tables.
+
+    Returns:
+      names (list): list of available CORDEX domains.
+
+    """
+    return list(TABLES.keys())
