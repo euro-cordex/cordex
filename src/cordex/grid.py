@@ -361,7 +361,9 @@ class Grid(object):
             pol_lat = self.pol_lat
         else:
             if pol_lon is None or pol_lat is None:
-                raise Exception('grid is not rotated, transform requires pol_lon and pol_lat')
+                pol_lon = self.pol_lon
+                pol_lat = self.pol_lat
+                #raise Exception('grid is not rotated, transform requires pol_lon and pol_lat')
             direction = 'geo2rot'
         lon_arr_trans, lat_arr_trans = rotated_grid_transform(
             self.lon_arr, self.lat_arr, pol_lon, pol_lat,
