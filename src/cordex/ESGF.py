@@ -1,18 +1,22 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
-"""ESGF convenESGF conventionss module
+"""ESGF conventions module
 
 This module defines common ESGF path and filename conventions.
 
 Example:
 
-    To get an index from the :class:`RotatedGrid`, you just need to import it.
     To get a list of available implementations, you can call, e.g.,::
 
         from cordex import ESGF
         print(ESGF.conventions())
 
-The main interface function is `select_files`.
+Example:
+
+    To get an instance of the :class:`ESGFFileSelection` you can use
+    the main interface function::
+
+        example of interface function here.
 
 """
 
@@ -41,15 +45,10 @@ ESGF_CONVS = { 'CORDEX': {'path': cordex_path_list, 'file': cordex_conv_str},
                'CMIP5' : {'path': cmip5_path_list,  'file': cmip5_conv_str}  }
 
 
-UNIQUE = ['product', 'CORDEX_comdain', 'institute_id', 'driving_model_id', 'experimentd_id',
+UNIQUE = ['product', 'CORDEX_domain', 'institute_id', 'driving_model_id', 'experimentd_id',
           'ensemble', 'model_id', 'rcm_version_id', 'frequency', 'variable', 'date', 'realm',
           'rfrequency', 'variable']
 
-#date_fmt = '%Y%m'
-# 12: 1hr, 3hr
-# 10: 6hr
-#  8: day
-#  6: sem, mon
 date_fmts = {12:'%Y%m%d%H%M', 10:'%Y%m%d%H', 8:'%Y%m%d', 6:'%Y%m', 4:'%Y'}
 
 
@@ -62,7 +61,6 @@ date_fmts = {12:'%Y%m%d%H%M', 10:'%Y%m%d%H', 8:'%Y%m%d', 6:'%Y%m', 4:'%Y'}
 
 
 def parse_date(date_str):
-    #return dt.datetime.strptime(date_str, date_fmts[freq])
     return dt.datetime.strptime(date_str, date_fmts[len(date_str)])
 
 def format_date(date, freq):
@@ -164,8 +162,21 @@ class ESGFFileSelection(conv.FileSelection):
     def __init__(self, *args, **kwargs):
         conv.FileSelection.__init__(self, *args, **kwargs)
 
+    def __str__(self):
+        text = ''
+        text += super().__str__() + '\n'
+        for col in UNIQUE:
+            if col in self.df:
+                text += "{:<30}  :   {}\n".format(col, self.df[col].unique())
+        text += "{:<30}  :   {} to {}\n".format('time range', self.timerange[0], self.timerange[1])
+        if self.unique:
+            text += '\nESGF File Selection is unique.\n'
+        else:
+            text += '\nESGF File Selection is not unique.\n'
+        return text
+
     def subset(self, **kwargs):
-        """Create a subset by filtering attributes.
+        """Creates a subset by filtering attributes.
         """
         return ESGFFileSelection(super().subset(**kwargs).df)
 
@@ -195,12 +206,35 @@ class ESGFFileSelection(conv.FileSelection):
              :class:`ESGFFileSelection`: selection within time range.
 
         """
-        df = self.df[(self.df['startdate'] >= time_range[0]) & (self.df['startdate'] < time_range[1])]
+        logging.debug('selectin time range: {} tp {}'.format(time_range[0], time_range[1]))
+        df = self.df[(self.df['startdate'] <= time_range[0]) & (self.df['enddate'] >= time_range[1])]
         return ESGFFileSelection(df)
 
     @property
     def timerange(self):
         return (min(self.df['startdate']), max(self.df['enddate']))
+
+    @property
+    def unique(self):
+        """Determines if the file selection is unique.
+
+        The file selection is unique, if all columns except the start
+        and end dates have single unique values. If that is the case,
+        the file selection holds a time series of single unique attributes.
+
+        This is useful to check if you have selected a time series of a
+        single variable that might be processed or plotted.
+
+        Returns:
+            True if selection is unique, false otherwise.
+
+        """
+        for column, data in self.df.items():
+            column_in_unique = column in UNIQUE
+            data_unique      = len(data.unique())==1
+            if column_in_unique and not data_unique:
+                return False
+        return True
 
 
 def select_files(project_id, filter={}, root=None, **kwargs):
@@ -258,13 +292,6 @@ def get_convention(name, root=None):
     return _ConventionFactory.get_convention(name)(root=root)
 
 
-def unique(df):
-    for column, data in df.items():
-        column_in_unique = column in UNIQUE
-        data_unique      = len(data.unique())==1
-        if column_in_unique and not data_unique:
-            return False
-    return True
 
 
 def iterdict(d):

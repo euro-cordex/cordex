@@ -218,7 +218,6 @@ class FileSelection(object):
     def __str__(self):
         text = ''
         text += str(self.df)
-        text += str(self.df.describe())
         return text
 
     def to_csv(self, filename):
@@ -227,6 +226,10 @@ class FileSelection(object):
     def attributes(self):
         for key in self.df:
             print('attribute {}, found {}'.format(key,self.df[key].unique()))
+
+    @property
+    def file_list(self):
+        return list(self.df.index.values)
 
     def __getitem__(self, key):
         return self.df[key]
