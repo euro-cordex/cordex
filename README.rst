@@ -6,6 +6,12 @@
 .. image:: https://coveralls.io/repos/github/euro-cordex/cordex/badge.svg?branch=develop
     :target: https://coveralls.io/github/euro-cordex/cordex?branch=develop
 
+
+.. warning::
+
+    This package has no release yet, the API could and will change.
+
+
 ======
 cordex
 ======
@@ -28,18 +34,18 @@ You can install the package directly from github using pip:
 .. code-block:: console
 
     pip install git+https://github.com/euro-cordex/cordex
-   
- 
+
+
 If you want to contribute, I recommend cloning the repository and installing the package in development mode, e.g.
 
-    
+
 .. code-block:: console
 
     git clone https://github.com/euro-cordex/cordex
     cd cordex
     pip install -e .
 
-    
+
 This will install the package but you can still edit it and you don't need the package in your :code:`PYTHONPATH`
 
 Highlights
