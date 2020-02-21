@@ -13,8 +13,10 @@
 # Remember to also add them in setup.cfg but unpinned.
 # Example:
 #scipy==1.0
+parse==1.14.0
 numpy
 pandas
 xarray
-parse==1.14.0
+netCDF4
+cdo
 #
