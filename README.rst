@@ -51,6 +51,28 @@ This will install the package but you can still edit it and you don't need the p
 Highlights
 ==========
 
+Use the domain module to create Cordex domains safe and easy:
+
+.. code-block:: python
+
+    from cordex import domain as dm
+
+    # available tables
+    print(dm.tables())
+    # print cordex core table
+    print(dm.table('cordex-core'))
+    # available domains
+    print(dm.domains())
+    # available domains in cordex-core
+    print(dm.domains('cordex-core'))
+
+    # create domains with some dummy data (uses cdo topo)
+    for short_name in dm.domains():
+        print('creating domain: {}'.format(short_name))
+        domain = dm.domain(short_name)
+        print(domain)
+        domain.to_netcdf(short_name+'.nc', dummy='topo')
+
 Using the ESGF module for browsing the file system and creating pandas dataframes of file selections:
 (DKRZ example)
 
@@ -145,29 +167,6 @@ Use the conventions module to create your own filenaming conventions:
 
     # create full filename with path
     file = file_conv.pattern(root, **attributes)
-
-Use the domain module to create Cordex domains safe and easy:
-
-.. code-block:: python
-
-    from cordex import domain as dm
-
-    # available tables
-    print(dm.tables())
-    # print cordex core table
-    print(dm.table('cordex-core'))
-    # available domains
-    print(dm.domains())
-    # available domains in cordex-core
-    print(dm.domains('cordex-core'))
-
-    # create domains with some dummy data (uses cdo topo)
-    for short_name in dm.domains():
-        print('creating domain: {}'.format(short_name))
-        domain = dm.domain(short_name)
-        print(domain)
-        domain.to_netcdf(short_name+'.nc', dummy='topo')
-
 
 Requirements
 ============
