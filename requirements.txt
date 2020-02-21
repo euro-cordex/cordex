@@ -15,5 +15,6 @@
 #scipy==1.0
 numpy
 pandas
+xarray
 parse==1.14.0
 #
