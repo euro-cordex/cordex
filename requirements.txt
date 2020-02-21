@@ -21,4 +21,5 @@ netCDF4
 cdo
 urllib3
 xmltodict
+cdo
 #
