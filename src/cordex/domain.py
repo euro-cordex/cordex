@@ -6,6 +6,21 @@ This module defines preconfigured CORDEX domain. The :class:`Domain` class
 is a kind of wrapper for the :class:`Grid` class to connect a grid
 with meta information and easy to use functions that work on the member grid.
 
+Domains can either be defined statically in this module or read from a csv table
+that should be defined in the :mod:`table`.
+
+Example:
+
+    To get a list of available implementations, create cordex domains, write
+    them to netcdf with some dummy data, you can use ,e.g.,::
+
+        from cordex import domain as dm
+
+        for short_name in dm.domains():
+            print('creating domain: {}'.format(short_name))
+            domain = dm.domain(short_name)
+            domain.to_netcdf(short_name+'.nc', dummy='topo')
+
 """
 
 import numpy as np
