@@ -1,0 +1,2 @@
+region,short_name,long_name,nlon,nlat,ll_lon,ur_lon,ll_lat,ur_lat,dlon,dlat,pollon,pollat
+4,EUR-11,Europe,424,412,-28.375,18.155,-23.375,21.835,0.11,0.11,-162,39.25

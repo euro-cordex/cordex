@@ -49,6 +49,29 @@ __license__ = "mit"
 _logger = logging.getLogger(__name__)
 
 
+def _read_table_from_csv(csv):
+    csv_file = pkg_resources.resource_stream('cordex.tables', csv)
+    return pd.read_csv(csv_file, index_col='short_name')
+
+def _read_tables_from_csv():
+    tables = {}
+    for set_name, csv in CSV.items():
+        tables[set_name] = _read_table_from_csv(csv)
+    return tables
+
+
+def _create_domains_from_table(table):
+    domains = {}
+    for short_name, row in table.iterrows():
+        print(dict(row))
+        domains[short_name] = Domain(short_name=short_name, **dict(row))
+    return domains
+
+def _create_domain_from_table(short_name, table):
+    return Domain(short_name=short_name, **dict(table.loc[short_name]))
+
+TABLES = _read_tables_from_csv()
+
 
 class Domain():
     """The :class:`Domain` holds data and meta information of a Cordex Domain.
@@ -366,21 +389,21 @@ def get_dataset_xr(domain, filename='', dummy=None, mapping_name=None, attrs=Tru
     return ds
 
 
-class EUR_44(Domain):
-    """Defines the EUR-44 rotated Domain.
-    """
-    def __init__(self):
-        Domain.__init__(self, 106, 103, 0.44, 0.44,
-            -162.0, 39.25, -28.21, -23.21, short_name='EUR-44')
-
-
-
-class EUR_11(Domain):
-    """Defines the EUR-11 rotated Domain.
-    """
-    def __init__(self):
-        Domain.__init__(self, 424, 412, 0.11, 0.11,
-            -162.0, 39.25, -28.375, -23.375, short_name='EUR-11')
+# euro-cordex domains now read from csv
+##class EUR_44(Domain):
+##    """Defines the EUR-44 rotated Domain.
+##    """
+##    def __init__(self):
+##        Domain.__init__(self, 106, 103, 0.44, 0.44,
+##            -162.0, 39.25, -28.21, -23.21, short_name='EUR-44')
+##
+##
+##class EUR_11(Domain):
+##    """Defines the EUR-11 rotated Domain.
+##    """
+##    def __init__(self):
+##        Domain.__init__(self, 424, 412, 0.11, 0.11,
+##            -162.0, 39.25, -28.375, -23.375, short_name='EUR-11')
 
 
 
@@ -392,7 +415,8 @@ class _DomainFactory(object):
     def static_domains(cls):
         """Returns a list of instances of static domains.
         """
-        return [EUR_44(), EUR_11()]
+        #return [EUR_44(), EUR_11()]
+        return []
 
     @classmethod
     def names_from_static_domains(cls):
@@ -401,10 +425,13 @@ class _DomainFactory(object):
         return [domain.short_name for domain in cls.static_domains()]
 
     @classmethod
-    def names_from_csv(cls):
+    def names_from_csv(cls, table=None):
         """Returns a list of names of csv domains.
         """
-        return list(chain.from_iterable([[sn for sn in t.index.values] for n,t in TABLES.items()]))
+        if table:
+            return list(TABLES[table].index.values)
+        else:
+            return list(chain.from_iterable([[sn for sn in t.index.values] for n,t in TABLES.items()]))
 
     @classmethod
     def create_domain_from_table(cls, short_name):
@@ -415,10 +442,13 @@ class _DomainFactory(object):
                 return _create_domain_from_table(short_name, table)
 
     @classmethod
-    def names(cls):
+    def names(cls, table=None):
         """Returns a list of names of available Domains.
         """
-        return cls.names_from_static_domains() + cls.names_from_csv()
+        if table:
+            return cls.names_from_csv(table)
+        else:
+            return cls.names_from_static_domains() + cls.names_from_csv()
 
     @classmethod
     def get_static_domain(cls, short_name):
@@ -450,28 +480,6 @@ class _DomainFactory(object):
            return out
 
 
-def _read_table_from_csv(csv):
-    csv_file = pkg_resources.resource_stream('cordex.tables', csv)
-    return pd.read_csv(csv_file, index_col='short_name')
-
-def _read_tables_from_csv():
-    tables = {}
-    for set_name, csv in CSV.items():
-        tables[set_name] = _read_table_from_csv(csv)
-    return tables
-
-
-def _create_domains_from_table(table):
-    domains = {}
-    for short_name, row in table.iterrows():
-        print(dict(row))
-        domains[short_name] = Domain(short_name=short_name, **dict(row))
-    return domains
-
-def _create_domain_from_table(short_name, table):
-    return Domain(short_name=short_name, **dict(table.loc[short_name]))
-
-TABLES = _read_tables_from_csv()
 
 
 def domain(name):
@@ -487,11 +495,11 @@ def domain(name):
     return _DomainFactory().get_domain(name)
 
 
-def domains():
+def domains(table=None):
     """Top level function that returns a list of available CORDEX domains.
 
     Returns:
       names (list): list of available CORDEX domains.
 
     """
-    return _DomainFactory().names()
+    return _DomainFactory().names(table)

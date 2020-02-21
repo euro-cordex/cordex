@@ -1,4 +1,6 @@
 """This module defines the csv tables for Cordex Domains.
 """
 
-CSV = {'CORDEX-CORE': 'cordex-22_grid-definitions.csv'}
+CSV = {'cordex-core': 'cordex-core.csv',
+       'cordex': 'cordex.csv',
+       'cordex-high-res': 'cordex-high-res.csv'}
