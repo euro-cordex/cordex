@@ -20,6 +20,8 @@ from netCDF4 import Dataset
 from . import grid as gd
 from . import cf
 
+from .tables.tables import CSV
+
 from cordex import __version__
 
 import pkg_resources
@@ -32,7 +34,6 @@ __license__ = "mit"
 _logger = logging.getLogger(__name__)
 
 
-CSV    = {'CORDEX-CORE': 'cordex-22_grid-definitions.csv'}
 
 class Domain():
     """The :class:`Domain` holds data and meta information of a Cordex Domain.
