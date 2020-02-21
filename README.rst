@@ -45,7 +45,8 @@ This will install the package but you can still edit it and you don't need the p
 Highlights
 ==========
 
-Using the ESGF module for browsing the file system and creatind pandas dataframes of file selections:
+Using the ESGF module for browsing the file system and creating pandas dataframes of file selections:
+(DKRZ example)
 
 .. code-block:: python
 
