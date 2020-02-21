@@ -1,6 +1,5 @@
-
-#import requestss
-
+# -*- coding: utf-8 -*-
+# flake8: noqa
 import traceback
 import urllib3
 import xmltodict
