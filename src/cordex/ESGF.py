@@ -32,13 +32,13 @@ from . import conventions as conv
 cordex_path_list = ['product','CORDEX_domain','institute_id','driving_model_id', \
                     'experiment_id', 'ensemble', 'model_id', 'rcm_version_id'  , \
                     'frequency', 'variable', 'date']
-cordex_conv_str  = '{variable}_{CORDEX_domain}_{driving_model_id}_{experimend_id}_' \
+cordex_conv_str  = '{variable}_{CORDEX_domain}_{driving_model_id}_{experiment_id}_' \
                    '{ensemble}_{model_id}_{rcm_version_id}_{frequency}_' \
                    '{startdate}-{enddate}.{suffix}'
 cmip5_path_list  = ['product','institute_id','model_id', \
                     'experiment_id', 'frequency', 'realm', 'rfrequency', 'ensemble'  , \
                     'date', 'variable']
-cmip5_conv_str   = '{variable}_{frequency}_{model_id}_{experimend_id}_' \
+cmip5_conv_str   = '{variable}_{frequency}_{model_id}_{experiment_id}_' \
                    '{ensemble}_{startdate}-{enddate}.{suffix}'
 
 ESGF_CONVS = { 'CORDEX': {'path': cordex_path_list, 'file': cordex_conv_str},

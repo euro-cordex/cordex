@@ -63,13 +63,51 @@ Using the ESGF module for browsing the file system and creating pandas dataframe
                 'experiment_id': 'historical',
                 'ensemble'     : 'r1i1p1'}
 
+    # get a selection of files (using pandas dataframes)
     selection = get_selection(project_id, root=root, filter=filter)
     print(selection)
 
+    # create a finer selection and convert dates to datetime objects 
     selection = selection.subset(variable='pr').to_datetime()
+    # get a timeseries of files 
     selection = selection.select_timerange([dt.datetime(1990,1,1),dt.datetime(2000,1,1)])
     print(selection)
-    
+
+Use the ESGF module to create your filename using an attribute dictionary. Use the CORDEX filenaming
+convetion (or create your own!):
+
+.. code-block:: python
+
+    from cordex import ESGF as esgf
+
+    root       = '/my_root'
+
+    # define attributes
+    attributes   = {'institute_id'    : 'GERICS',
+                    'product'         : 'output',
+                    'model_id'        : 'GERICS-REMO2015',
+                    'experiment_id'   : 'evaluation',
+                    'driving_model_id': 'ECMWF-ERAINT',
+                    'variable'        : 'pr',
+                    'rcm_version_id'  : 'v1',
+                    'date'            : 'v20200221',
+                    'frequency'       : 'day',
+                    'CORDEX_domain'   : 'EUR-11',
+                    'suffix'          : 'nc',
+                    'ensemble'        : 'r1i1p1'}
+
+    # we use the CORDEX convention as example
+    convention = esgf.CORDEX()
+    # print the convention patterns 
+    print(convention.path_conv.conv_str)
+    print(convention.filename_conv.conv_str)
+    # only filename
+    filename = convention.filename(**attributes, startdate='20010101', enddate='20010131')
+    # only path
+    path     = convention.path(**attributes, startdate='20010101', enddate='20010131')
+    # only filename with path
+    file     = convention.pattern(root, **attributes, startdate='20010101', enddate='20010131')
+
 Use the domain module to create Cordex domains safe and easy:
 
 .. code-block:: python
