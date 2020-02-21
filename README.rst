@@ -88,6 +88,8 @@ Requirements
 * python3.6 or higher
 * numpy
 * pandas
+* (xarray)
+* netCDF4
 * parse
 
 
