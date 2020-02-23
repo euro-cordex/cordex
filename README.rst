@@ -7,10 +7,9 @@
     :target: https://coveralls.io/github/euro-cordex/cordex?branch=develop
 
 
-.. warning::
+.. code-block::
 
-    This package has no release yet, the API could and will change.
-
+    WARNING: This package has no release yet, the API could and will change.
 
 ======
 cordex
