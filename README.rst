@@ -52,8 +52,6 @@ Highlights
 
 Use the domain module to create Cordex domains safe and easy:
 
-.. include:: examples/domain.py
-
 .. code-block:: python
 
     from cordex import domain as dm
