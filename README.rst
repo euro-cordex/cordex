@@ -52,8 +52,7 @@ Highlights
 
 Use the domain module to create Cordex domains safe and easy:
 
-.. literalinclude:: examples/domain.py
-   :language: python
+.. include:: examples/domain.py
 
 .. code-block:: python
 
