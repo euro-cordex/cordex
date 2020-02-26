@@ -74,9 +74,8 @@ Use the domain module to create Cordex domains safe and easy:
 
 Using the ESGF module for browsing the file system and creating pandas dataframes of file selections:
 (DKRZ example).
-.. code-block::
 
-    Note that DKRZ also provides an intake-esm table (https://intake-esm.readthedocs.io/en/latest/) 
+    Note that DKRZ also provides an **intake-esm** table (https://intake-esm.readthedocs.io/en/latest/) 
     for browsing and searchin MIP data at DKRZ. I highly recommend to have a look at it and create tables
     for your own data pool. For creating a table, you could use our cordex conventions module!
 
