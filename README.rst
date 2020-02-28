@@ -10,7 +10,7 @@
 .. code-block::
 
     WARNING: This package has no release yet, the API could and will change.
-blabla
+
 ======
 cordex
 ======
