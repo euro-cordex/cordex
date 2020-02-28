@@ -11,9 +11,6 @@
 
     WARNING: This package has no release yet, the API could and will change.
 
-======
-cordex
-======
 
 
 cordex python package
