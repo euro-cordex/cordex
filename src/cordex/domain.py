@@ -84,6 +84,10 @@ class Domain():
         else:
             self.short_name = short_name
         self.long_name = long_name
+        self.nlon = nlon
+        self.nlat = nlat
+        self.dlon = dlon
+        self.dlat = dlat
         self.dim_names   = ('rlon', 'rlat')
         self.coord_names = ('lon' , 'lat')
         self.grid_rotated = self._init_grid(nlon, nlat, dlon, dlat, ll_lon, \
@@ -94,14 +98,20 @@ class Domain():
         else:
             self.global_attrs = attrs
 
+    @property
+    def pollon(self):
+        return self.grid_rotated.pole[0]
+
+    @property
+    def pollat(self):
+        return self.grid_rotated.pole[1]
 
     def _init_grid(self, nlon, nlat, dlon, dlat, ll_lon, ll_lat, pollon, pollat):
         rlon = np.array([ll_lon+i*dlon for i in range(0,nlon)], dtype=np.float64)
         rlat = np.array([ll_lat+i*dlat for i in range(0,nlat)], dtype=np.float64)
         return gd.Grid(rlon, rlat, pollon, pollat)
 
-
-    def extend(self, nlon, nlat=None):
+    def extend(self, nlonl, nlatl=None, nlonr=None, nlatu=None, **kwargs):
         """Extend a Domain with a number of boundaray cells.
 
         Args:
@@ -112,17 +122,24 @@ class Domain():
           Domain: Domain instance with extended boundaries.
 
         """
-        if nlat is None: nlat = nlon
-        ll_lon = self.ll_lon -  nlon * self.dlon
-        ll_lat = self.ll_lat -  nlat * self.dlat
-        return Domain(self.nlon+2*nlon, self.nlat+2*nlat, self.dlon, self.dlat,
-                      self.pollon, self.pollat, ll_lon, ll_lat)
+        boundary = self.grid_rotated.get_bounding_box()
+        ll = boundary[0]
+        print(ll)
+        if nlatl is None: nlatl = nlonl
+        if nlonr is None: nlonr = nlonl
+        if nlatu is None: nlatu = nlatl
+        ll_lon = ll[0] -  nlonl * self.dlon
+        ll_lat = ll[1] -  nlatl * self.dlat
+        return Domain(self.nlon+nlonl+nlonr, self.nlat+nlatl+nlatu, self.dlon, self.dlat,
+                      self.pollon, self.pollat, ll_lon, ll_lat, **kwargs)
 
 
     def __str__(self):
         text = '\n----- Domain Object -----\n'
         text += '{:<15}    :   {}\n'.format('short_name', self.short_name)
         text += '{:<15}    :   {}\n'.format('long_name', self.long_name)
+        text += '{:<15}    :   {}\n'.format('nlon', self.nlon)
+        text += '{:<15}    :   {}\n'.format('nlat', self.nlat)
         text += str(self.grid_rotated)
         return text
 
@@ -331,15 +348,15 @@ class _XrDataset(_CFDataset):
         return da_lon, da_lat
 
 
-def _get_dataset(domain, filename='', dummy=None, mapping_name=None, attrs=True):
-    return _get_dataset_nc4(domain, filename, dummy, mapping_name, attrs)
+def _get_dataset(domain, filename='', dummy=None, mapping_name=None, attrs=True, **kwargs):
+    return _get_dataset_nc4(domain, filename, dummy, mapping_name, attrs, **kwargs)
 
 
-def _get_dataset_nc4(domain, filename='', dummy=None, mapping_name=None, attrs=True):
+def _get_dataset_nc4(domain, filename='', dummy=None, mapping_name=None, attrs=True, **kwargs):
     if mapping_name is None:
         mapping_name = cf.DEFAULT_MAPPING_NCVAR
     ds = _NC4Dataset()
-    ds.create(filename)
+    ds.create(filename, **kwargs)
     ds.add_pole(domain, mapping_name, cf.mapping.copy())
     x_coord, y_coord = ds.add_rlon_rlat(domain)
     nx = x_coord.size
