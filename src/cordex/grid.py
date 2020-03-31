@@ -63,7 +63,7 @@ class Grid(object):
         self.lon_arr_geo, self.lat_arr_geo = self.init_lon_lat_arr(lon_arr, lat_arr)
         self.lon_arr, self.lat_arr         = self.init_lon_lat_arr(lon_arr, lat_arr)
         assert(self.lon_arr_geo.shape == self.lat_arr_geo.shape)
-        #assert(self.lon_arr.shape == self.lat_arr.shape)
+        assert(self.lon_arr.shape == self.lat_arr.shape)
         self._check_cyclic(self.lon_arr_geo)
 
 
@@ -91,7 +91,7 @@ class Grid(object):
         dic = {'pollon': self.pol_lon,
                'pollat': self.pol_lat,
                'lon_arr': self.lon_arr,
-               'lat_arr': self.lat_arr 
+               'lat_arr': self.lat_arr
                }
         return out_tmplt.format(**dic)
 
