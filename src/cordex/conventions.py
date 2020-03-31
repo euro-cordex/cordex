@@ -37,7 +37,7 @@ class GlobFormatter(string.Formatter):
 
 
 class PartialFormatter(string.Formatter):
-    def __init__(self, missing='*', bad_fmt='!!'):
+    def __init__(self, missing='*', bad_fmt='*'):
         self.missing, self.bad_fmt=missing, bad_fmt
 
     def get_field(self, field_name, args, kwargs):
@@ -61,7 +61,7 @@ class PartialFormatter(string.Formatter):
 
 class NamingConvention():
 
-    def __init__(self, formatter=None):
+    def __init__(self, formatter=None, missing='*'):
         if formatter is None:
             self.formatter = PartialFormatter()
 
@@ -88,10 +88,10 @@ class FileNameConvention(NamingConvention):
     """creates and parse filenames according to a convention.
     """
 
-    def __init__(self, conv_str='', any_str='*', formatter=None):
-        NamingConvention.__init__(self, formatter)
+    def __init__(self, conv_str='', missing='*', formatter=None):
+        NamingConvention.__init__(self, formatter, missing)
         self.conv_str    = conv_str
-        self.any_str     = any_str
+        self.any_str     = missing
         # save the attribtes from the convention str
         #self.attr_names  = parse(self.conv_str, self.conv_str, self.parse_dict).named.keys()
         self.attr_names = [t[1] for t in string.Formatter().parse(conv_str) if t[1] is not None]
@@ -113,17 +113,9 @@ class FileNameConvention(NamingConvention):
             print('parsing not successful for {}'.format(filename))
             return None
 
-    def pattern(self, any_str=None, **kwargs):
+    def pattern(self, **kwargs):
         """Creates a filename pattern from attributes.
         """
-        #if any_str is None:
-        #    any_str = self.any_str
-        #    defaults = self.defaults
-        #else:
-        #    defaults = {attr:any_str for attr in self.attr_names}
-        #attrs_dict = defaults.copy()
-        #attrs_dict.update(kwargs)
-        #attrs_dict = self.format_attrs(attrs_dict, any_str)
         return self.formatter.format(self.conv_str, **kwargs)
 
 
@@ -132,7 +124,7 @@ class FilePathConvention(NamingConvention):
     """
 
     def __init__(self, conv_list=[], root=None, any_str='*'):
-        NamingConvention.__init__(self)
+        NamingConvention.__init__(self, missing=any_str)
         if root is None:
             self.root = ''
         else:

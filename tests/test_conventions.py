@@ -23,9 +23,6 @@ def test_filename_convention():
     print(conv.pattern(**attrs))
     assert conv.pattern(**attrs) == filename
     assert conv.pattern(model='REMO2015') == 'REMO2015_*_*-*.*'
-    print(conv.pattern(model='REMO2015', any_str='MISSING'))
-    print(conv.defaults)
-    assert conv.pattern(model='REMO2015', any_str='MISSING') == 'REMO2015_MISSING_MISSING-MISSING.MISSING'
 
 
 def test_filepath_convention():

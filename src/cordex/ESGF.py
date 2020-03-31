@@ -79,7 +79,7 @@ class CORDEX(conv.FileConvention):
 
     def __init__(self, root=None):
         path_conv      = conv.FilePathConvention(cordex_path_list, root=root)
-        filename_conv  = ESGFFileNameConvention(cordex_conv_str, formatters=None)
+        filename_conv  = ESGFFileNameConvention(cordex_conv_str)
         conv.FileConvention.__init__(self, path_conv, filename_conv)
 
 
