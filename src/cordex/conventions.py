@@ -15,6 +15,8 @@ from parse import parse
 import string
 from pathlib import Path, PurePath
 from cordex import __version__
+from .utils import printProgressBar
+
 
 __author__ = "Lars Buntemeyer"
 __copyright__ = "Lars Buntemeyer"
@@ -23,44 +25,77 @@ __license__ = "mit"
 _logger = logging.getLogger(__name__)
 
 
-class NamingConvention():
-    def __init__(self):
-        pass
+class GlobFormatter(string.Formatter):
+    def __init__(self, default=''):
+        self.default=default
 
-
-class Formatter(object):
-
-    def __init__(self, name, fmt=None, parser=None):
-        self.name   = name
-        self.fmt    = fmt
-        self.parser = parser
-        if self.parser:
-            self.parse_dict = {self.name:self.parser}
+    def get_value(self, key, args, kwds):
+        if isinstance(key, str):
+            return kwds.get(key, self.default)
         else:
-            self.parse_dict = None
+            return string.Formatter.get_value(key, args, kwds)
 
-    def parse(self, s):
-        return parse('{:'+self.name+'}' , s, self.parse_dict).fixed
 
-    def format(self, fill):
-        return ('{:'+self.fmt+'}').format(fill)
+class PartialFormatter(string.Formatter):
+    def __init__(self, missing='*', bad_fmt='!!'):
+        self.missing, self.bad_fmt=missing, bad_fmt
+
+    def get_field(self, field_name, args, kwargs):
+        # Handle a key not found
+        try:
+            val=super(PartialFormatter, self).get_field(field_name, args, kwargs)
+            # Python 3, 'super().get_field(field_name, args, kwargs)' works
+        except (KeyError, AttributeError):
+            val=None,field_name
+        return val
+
+    def format_field(self, value, spec):
+        # handle an invalid format
+        if value==None: return self.missing
+        try:
+            return super(PartialFormatter, self).format_field(value, spec)
+        except ValueError:
+            if self.bad_fmt is not None: return self.bad_fmt
+            else: raise
+
+
+class NamingConvention():
+
+    def __init__(self, formatter=None):
+        if formatter is None:
+            self.formatter = PartialFormatter()
+
+
+##class Formatter(object):
+##
+##    def __init__(self, name, fmt=None, parser=None):
+##        self.name   = name
+##        self.fmt    = fmt
+##        self.parser = parser
+##        if self.parser:
+##            self.parse_dict = {self.name:self.parser}
+##        else:
+##            self.parse_dict = None
+##
+##    def parse(self, s):
+##        return parse('{:'+self.name+'}' , s, self.parse_dict).fixed
+##
+##    def format(self, fill):
+##        return ('{:'+self.fmt+'}').format(fill)
 
 
 class FileNameConvention(NamingConvention):
     """creates and parse filenames according to a convention.
     """
 
-    def __init__(self, conv_str='', any_str='*', formatters=None):
-        NamingConvention.__init__(self)
+    def __init__(self, conv_str='', any_str='*', formatter=None):
+        NamingConvention.__init__(self, formatter)
         self.conv_str    = conv_str
         self.any_str     = any_str
         # save the attribtes from the convention str
         #self.attr_names  = parse(self.conv_str, self.conv_str, self.parse_dict).named.keys()
         self.attr_names = [t[1] for t in string.Formatter().parse(conv_str) if t[1] is not None]
         self.defaults    = {attr:self.any_str for attr in self.attr_names}
-        self.formatters  = formatters
-        if formatters is None:
-            self.formatters = {}
 
     def parse_attrs(self, attrs):
         return attrs
@@ -71,23 +106,25 @@ class FileNameConvention(NamingConvention):
     def parse(self, filename):
         """Parses a filename and returns attributes.
         """
-        attrs = parse(self.conv_str, os.path.basename(filename)).named
-        attrs = self.parse_attrs(attrs)
-        return attrs
-
+        parsed = parse(self.conv_str, os.path.basename(filename))
+        if parsed:
+            return self.parse_attrs(parsed.named)
+        else:
+            print('parsing not successful for {}'.format(filename))
+            return None
 
     def pattern(self, any_str=None, **kwargs):
         """Creates a filename pattern from attributes.
         """
-        if any_str is None:
-            any_str = self.any_str
-            defaults = self.defaults
-        else:
-            defaults = {attr:any_str for attr in self.attr_names}
-        attrs_dict = defaults.copy()
-        attrs_dict.update(kwargs)
-        attrs_dict = self.format_attrs(attrs_dict, any_str)
-        return self.conv_str.format(**attrs_dict)
+        #if any_str is None:
+        #    any_str = self.any_str
+        #    defaults = self.defaults
+        #else:
+        #    defaults = {attr:any_str for attr in self.attr_names}
+        #attrs_dict = defaults.copy()
+        #attrs_dict.update(kwargs)
+        #attrs_dict = self.format_attrs(attrs_dict, any_str)
+        return self.formatter.format(self.conv_str, **kwargs)
 
 
 class FilePathConvention(NamingConvention):
@@ -174,7 +211,8 @@ class FileConvention(object):
         """
         path_attrs     = self.path_conv.parse(os.path.dirname(file))
         filename_attrs = self.filename_conv.parse(os.path.basename(file))
-        path_attrs.update(filename_attrs)
+        if filename_attrs:
+            path_attrs.update(filename_attrs)
         return path_attrs
 
     def filename(self, **kwargs):
@@ -229,7 +267,8 @@ class FileSelection(object):
 
     @property
     def file_list(self):
-        return list(self.df.index.values)
+        #return list(self.df.index.values)
+        return list(self.df['path'].values)
 
     def __getitem__(self, key):
         return self.df[key]
@@ -245,13 +284,21 @@ def make_df(convention, files):
     of files according to a convention of type :class:`FileConvention`.
     """
     df = pd.DataFrame()
-    for f in files:
+    l = len(files)
+    print('parsing {} files...\n'.format(l))
+    printProgressBar(0, l, prefix = 'Parsing files, Progress:', suffix = 'Complete', length = 50)
+    for i,f in enumerate(files):
         _logger.debug('parsing file: {}'.format(f))
         if not os.path.isfile(f):
             _logger.warning('ignoring {}'.format(f))
             continue
         attrs = convention.parse(f)
-        df = pd.concat([df, pd.DataFrame(attrs, index=[f])])
+        attrs['path'] = f
+        #df = pd.concat([df, pd.DataFrame(attrs, index=[f])])
+        #df = pd.concat([df, pd.DataFrame(attrs)], ignore_index=True).reset_index(drop=True)
+        df = df.append(attrs, ignore_index=True)
+        printProgressBar(i + 1, l, prefix = 'Progress:', \
+                         suffix = 'Complete', length = 50)
     return df
 
 

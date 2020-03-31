@@ -30,34 +30,19 @@ from . import conventions as conv
 
 
 cordex_path_list = ['product','CORDEX_domain','institute_id','driving_model_id', \
-                    'experiment_id', 'ensemble', 'model_id', 'rcm_version_id'  , \
-                    'frequency', 'variable', 'date']
+                    'experiment_id', 'ensemble_member', 'model_id', 'rcm_version_id'  , \
+                    'frequency', 'variable', 'version']
 cordex_conv_str  = '{variable}_{CORDEX_domain}_{driving_model_id}_{experiment_id}_' \
-                   '{ensemble}_{model_id}_{rcm_version_id}_{frequency}_' \
+                   '{ensemble_member}_{model_id}_{rcm_version_id}_{frequency}_' \
                    '{startdate}-{enddate}.{suffix}'
-cmip5_path_list  = ['product','institute_id','model_id', \
-                    'experiment_id', 'frequency', 'realm', 'rfrequency', 'ensemble'  , \
-                    'date', 'variable']
-cmip5_conv_str   = '{variable}_{frequency}_{model_id}_{experiment_id}_' \
-                   '{ensemble}_{startdate}-{enddate}.{suffix}'
-
-ESGF_CONVS = { 'CORDEX': {'path': cordex_path_list, 'file': cordex_conv_str},
-               'CMIP5' : {'path': cmip5_path_list,  'file': cmip5_conv_str}  }
 
 
 UNIQUE = ['product', 'CORDEX_domain', 'institute_id', 'driving_model_id', 'experimentd_id',
-          'ensemble', 'model_id', 'rcm_version_id', 'frequency', 'variable', 'date', 'realm',
-          'rfrequency', 'variable']
+          'ensemble_member', 'model_id', 'rcm_version_id', 'frequency', 'variable', 'version', 'modeling_realm',
+          'mip_table', 'variable']
 
 date_fmts = {12:'%Y%m%d%H%M', 10:'%Y%m%d%H', 8:'%Y%m%d', 6:'%Y%m', 4:'%Y'}
 
-
-## define date string formats depending on frequency
-#date_fmts = {'1hr'    : '%Y%m%d%H%M'  , '3hr' : '%Y%m%d%H%M',
-#             '6hr'    : '%Y%m%d%H'    , 'day' : '%Y%m%d',     'cfDay': '%Y%m%d',
-#             'sem'    : '%Y%m'        , 'mon' : '%Y%m',       'cfMon': '%Y%m',
-#             '6hrPlev': '%Y%m%d%H'    , 'Amon': '%Y%m',
-#             '6hrPlev': '%Y%m%d%H'    , 'Omon': '%Y%m'  }
 
 
 def parse_date(date_str):
@@ -65,10 +50,6 @@ def parse_date(date_str):
 
 def format_date(date, freq):
     return date.strftime(date_fmts[freq])
-
-#date_formatter = conv.Formatter('date', fmt=date_fmt, parser=parse_date)
-
-#formatters = {'startdate':date_formatter}
 
 
 
@@ -103,15 +84,42 @@ class CORDEX(conv.FileConvention):
 
 
 
-class CMIP5(conv.FileConvention):
+class CMIP5():
     """Implements CMIP5 path and filename conventions.
     """
     name      = 'CMIP5'
+    cmip5_path_list  = ['product','institute_id','model_id', \
+                        'experiment_id', 'frequency', 'modeling_realm', 'mip_table', 'ensemble_member'  , \
+                        'version', 'variable']
+    cmip5_conv_dyn   = '{variable}_{mip_table}_{model_id}_{experiment_id}_' \
+                       '{ensemble_member}_{startdate}-{enddate}.{suffix}'
+    cmip5_conv_fx    = '{variable}_{mip_table}_{model_id}_{experiment_id}_' \
+                       '{ensemble_member}.{suffix}'
+    fx_vars = ['orog', 'sftlf', 'sftof', 'areacella', 'volcello', 'deptho', 'areacello']
 
     def __init__(self, root=None):
-        path_conv      = conv.FilePathConvention(cmip5_path_list, root=root)
-        filename_conv  = ESGFFileNameConvention(cmip5_conv_str, formatters=None)
-        conv.FileConvention.__init__(self, path_conv, filename_conv)
+        path_conv      = conv.FilePathConvention(self.cmip5_path_list, root=root)
+        filename_dyn   = ESGFFileNameConvention(self.cmip5_conv_dyn)
+        filename_fx    = ESGFFileNameConvention(self.cmip5_conv_fx)
+        self.conv_dyn = conv.FileConvention(path_conv, filename_dyn)
+        self.conv_fx  = conv.FileConvention(path_conv, filename_fx)
+
+    def parse(self, file):
+        """Parses a file including path and filename and returns attributes.
+        """
+        path_attrs     = self.conv_dyn.path_conv.parse(os.path.dirname(file))
+        if path_attrs['variable'] in self.fx_vars:
+            attrs = self.conv_fx.parse(file)
+        else:
+            attrs = self.conv_dyn.parse(file)
+        return attrs
+
+    def pattern(self, **kwargs):
+        if 'variable' in kwargs:
+            if kwargs['variable'] in self.fx_vars:
+                return self.conv_fx.pattern(**kwargs)
+            else:
+                return self.conv_dyn.pattern(**kwargs)
 
 
 
@@ -193,6 +201,7 @@ class ESGFFileSelection(conv.FileSelection):
         for index, row in df.iterrows():
             row['startdate'] = parse_date(row['startdate'])
             row['enddate']   = parse_date(row['enddate'])
+        df.sort_values(by='startdate', inplace=True)
         return ESGFFileSelection(df)
 
     def select_timerange(self, time_range):
@@ -206,13 +215,18 @@ class ESGFFileSelection(conv.FileSelection):
              :class:`ESGFFileSelection`: selection within time range.
 
         """
-        logging.debug('selectin time range: {} tp {}'.format(time_range[0], time_range[1]))
-        df = self.df[(self.df['startdate'] <= time_range[0]) & (self.df['enddate'] >= time_range[1])]
+        logging.debug('selecting time range: {} tp {}'.format(time_range[0], time_range[1]))
+        df = self.df[((self.df['startdate'] >= time_range[0]) & (self.df['enddate'] <= time_range[1])) |
+                ((self.df['startdate'] <= time_range[0]) & (self.df['enddate'] >= time_range[0])) |
+                ((self.df['startdate'] <= time_range[1]) & (self.df['enddate'] >= time_range[1]))]
         return ESGFFileSelection(df)
 
     @property
     def timerange(self):
-        return (min(self.df['startdate']), max(self.df['enddate']))
+        if 'startdate' in self.df and 'enddate' in self.df:
+            return (min(self.df['startdate']), max(self.df['enddate']))
+        else:
+            return (None, None)
 
     @property
     def unique(self):
