@@ -88,12 +88,12 @@ class CMIP5():
     """Implements CMIP5 path and filename conventions.
     """
     name      = 'CMIP5'
-    cmip5_path_list  = ['product','institute_id','model_id', \
-                        'experiment_id', 'frequency', 'modeling_realm', 'mip_table', 'ensemble_member'  , \
+    cmip5_path_list  = ['product','institute','model', \
+                        'experiment', 'frequency', 'modeling_realm', 'mip_table', 'ensemble_member'  , \
                         'version', 'variable']
-    cmip5_conv_dyn   = '{variable}_{mip_table}_{model_id}_{experiment_id}_' \
+    cmip5_conv_dyn   = '{variable}_{mip_table}_{model}_{experiment}_' \
                        '{ensemble_member}_{startdate}-{enddate}.{suffix}'
-    cmip5_conv_fx    = '{variable}_{mip_table}_{model_id}_{experiment_id}_' \
+    cmip5_conv_fx    = '{variable}_{mip_table}_{model}_{experiment}_' \
                        '{ensemble_member}.{suffix}'
     fx_vars = ['orog', 'sftlf', 'sftof', 'areacella', 'volcello', 'deptho', 'areacello']
 
