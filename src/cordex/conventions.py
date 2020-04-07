@@ -277,8 +277,11 @@ def make_df(convention, files):
     """
     df = pd.DataFrame()
     l = len(files)
+    if l == 0:
+        logging.error('file list is empty')
+        raise Exception('can not create dataframe from empty file list.')
     print('parsing {} files...\n'.format(l))
-    printProgressBar(0, l, prefix = 'Parsing files, Progress:', suffix = 'Complete', length = 50)
+    #printProgressBar(0, l, prefix = 'Parsing files, Progress:', suffix = 'Complete', length = 50)
     for i,f in enumerate(files):
         _logger.debug('parsing file: {}'.format(f))
         if not os.path.isfile(f):
@@ -289,8 +292,8 @@ def make_df(convention, files):
         #df = pd.concat([df, pd.DataFrame(attrs, index=[f])])
         #df = pd.concat([df, pd.DataFrame(attrs)], ignore_index=True).reset_index(drop=True)
         df = df.append(attrs, ignore_index=True)
-        printProgressBar(i + 1, l, prefix = 'Progress:', \
-                         suffix = 'Complete', length = 50)
+        #printProgressBar(i + 1, l, prefix = 'Progress:', \
+        #                 suffix = 'Complete', length = 50)
     return df
 
 
