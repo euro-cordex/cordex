@@ -16,7 +16,7 @@ cordex
 ======
 
 
-cordex python package
+The cordex python package is supposed to becoma a community effort to collect common data and tools.
 
 
 Description
