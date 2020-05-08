@@ -127,14 +127,13 @@ class Domain():
     def __mul__(self, other):
         """Multiply a Domain with a factor.
 
-        A multiplication will act like a refinement.
+        A multiplication will act like a refinement but with
+        the inverse of the factor.
         """
-        return self.refine(other)
+        return self.refine(1.0/other)
 
     def __rmul__(self, other):
         """Multiply a Domain with a factor.
-
-        A multiplication will act like a refinement.
         """
         return self.__mul__(other)
 
@@ -179,13 +178,35 @@ class Domain():
     def refine(self, factor=1.0):
         """refine the resolution of the grid.
 
-
+        The resolution factor determines multiplication factor for the
+        number of grid boxes (nlon, nlat), not the resolution (dlon, dlat).
 
         Args:
           factor (real): resolution factor.
 
         Returns:
           Domain: Domain instance with refined resolution.
+
+        Example:
+
+                from cordex import domain as dm
+
+                eur44 = dm.domain('EUR-44')
+                eur22 = dm.domain('EUR-22')
+                eur11 = dm.domain('EUR-11')
+
+                # use of refinement funtion
+                eur44_ref = eur44.refine(2.0)
+
+                # compare eur44_ref with EUR-22 from the table
+                print(eur22 == eur44_ref)
+
+                # demonstrate simple domain math.
+                print(eur22 == 0.5 * eur44 )
+                print(eur11 == 0.25 * eur44 )
+                print(eur11 == 0.5 * eur22 )
+                print(eur44 == 4 * eur11 )
+
         """
         # refined resolution
         dlon_ref = 1.0 / factor * self.dlon
