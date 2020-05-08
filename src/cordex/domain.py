@@ -50,10 +50,14 @@ _logger = logging.getLogger(__name__)
 
 
 def _read_table_from_csv(csv):
+    """reads a csv table from the package resource.
+    """
     csv_file = pkg_resources.resource_stream('cordex.tables', csv)
     return pd.read_csv(csv_file, index_col='short_name')
 
 def _read_tables_from_csv():
+    """reads all csv tables from the package resource.
+    """
     tables = {}
     for set_name, csv in CSV.items():
         tables[set_name] = _read_table_from_csv(csv)
@@ -61,6 +65,8 @@ def _read_tables_from_csv():
 
 
 def _create_domains_from_table(table):
+    """creates domain instances from a pandas dataframe.
+    """
     domains = {}
     for short_name, row in table.iterrows():
         print(dict(row))
@@ -68,6 +74,8 @@ def _create_domains_from_table(table):
     return domains
 
 def _create_domain_from_table(short_name, table):
+    """creates domain instance from a pandas dataframe row.
+    """
     return Domain(short_name=short_name, **dict(table.loc[short_name]))
 
 TABLES = _read_tables_from_csv()
@@ -75,6 +83,18 @@ TABLES = _read_tables_from_csv()
 
 class Domain():
     """The :class:`Domain` holds data and meta information of a Cordex Domain.
+
+    The :class:`Domain` holds :class:`grid.Grid`
+
+    **Attributes:**
+        *nlon:*
+            longitudal number of grid boxes
+        *nlat:*
+            latitudal number of grid boxes
+        *dlon:*
+            longitudal resolution (degrees)
+        *dlat:*
+            latitudal resolution (degrees)
     """
     def __init__(self, nlon, nlat, dlon, dlat,
                  pollon, pollat, ll_lon, ll_lat, short_name=None,
@@ -92,11 +112,31 @@ class Domain():
         self.coord_names = ('lon' , 'lat')
         self.grid_rotated = self._init_grid(nlon, nlat, dlon, dlat, ll_lon, \
                                    ll_lat, pollon, pollat)
-        self.grid_lonlat  = self.grid_rotated.transform()
         if ncattrs is None:
             self.global_attrs = {}
         else:
             self.global_attrs = attrs
+
+    def __eq__(self, other):
+        """Check for equality.
+
+        Two domains are equal if the grids are equal.
+        """
+        return self.grid_rotated == other.grid_rotated
+
+    def __mul__(self, other):
+        """Multiply a Domain with a factor.
+
+        A multiplication will act like a refinement.
+        """
+        return self.refine(other)
+
+    def __rmul__(self, other):
+        """Multiply a Domain with a factor.
+
+        A multiplication will act like a refinement.
+        """
+        return self.__mul__(other)
 
     @property
     def pollon(self):
@@ -106,13 +146,17 @@ class Domain():
     def pollat(self):
         return self.grid_rotated.pole[1]
 
+    @property
+    def grid_lonlat(self):
+        return self.grid_rotated.transform()
+
     def _init_grid(self, nlon, nlat, dlon, dlat, ll_lon, ll_lat, pollon, pollat):
         rlon = np.array([ll_lon+i*dlon for i in range(0,nlon)], dtype=np.float64)
         rlat = np.array([ll_lat+i*dlat for i in range(0,nlat)], dtype=np.float64)
         return gd.Grid(rlon, rlat, pollon, pollat)
 
     def extend(self, nlonl, nlatl=None, nlonr=None, nlatu=None, **kwargs):
-        """Extend a Domain with a number of boundaray cells.
+        """Extend a Domain with a number of boundary cells.
 
         Args:
           nlon (int): number of extensions in longitual direction.
@@ -124,7 +168,6 @@ class Domain():
         """
         boundary = self.grid_rotated.get_bounding_box()
         ll = boundary[0]
-        print(ll)
         if nlatl is None: nlatl = nlonl
         if nlonr is None: nlonr = nlonl
         if nlatu is None: nlatu = nlatl
@@ -133,6 +176,30 @@ class Domain():
         return Domain(self.nlon+nlonl+nlonr, self.nlat+nlatl+nlatu, self.dlon, self.dlat,
                       self.pollon, self.pollat, ll_lon, ll_lat, **kwargs)
 
+    def refine(self, factor=1.0):
+        """refine the resolution of the grid.
+
+
+
+        Args:
+          factor (real): resolution factor.
+
+        Returns:
+          Domain: Domain instance with refined resolution.
+        """
+        # refined resolution
+        dlon_ref = 1.0 / factor * self.dlon
+        dlat_ref = 1.0 / factor * self.dlat
+        nlon_ref = int(factor * self.nlon)
+        nlat_ref = int(factor * self.nlat)
+        ## ll is lower left
+        boundary = self.grid_rotated.get_bounding_box()
+        ll = boundary[0]
+        # new lower left
+        ll_lon = ll[0] - (factor - 1.0) * 0.5 * dlon_ref
+        ll_lat = ll[1] - (factor - 1.0) * 0.5 * dlat_ref
+        return Domain(nlon_ref, nlat_ref, dlon_ref, dlat_ref, self.pollon, self.pollat,
+                ll_lon, ll_lat)
 
     def __str__(self):
         text = '\n----- Domain Object -----\n'
