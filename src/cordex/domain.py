@@ -98,7 +98,7 @@ class Domain():
     """
     def __init__(self, nlon, nlat, dlon, dlat,
                  pollon, pollat, ll_lon, ll_lat, short_name=None,
-                 long_name='', ncattrs=None, **kwargs):
+                 long_name='', region=-1, ncattrs=None, **kwargs):
         if short_name is None:
             self.short_name = 'NO NAME'
         else:
@@ -108,6 +108,7 @@ class Domain():
         self.nlat = nlat
         self.dlon = dlon
         self.dlat = dlat
+        self.region = region
         self.dim_names   = ('rlon', 'rlat')
         self.coord_names = ('lon' , 'lat')
         self.grid_rotated = self._init_grid(nlon, nlat, dlon, dlat, ll_lon, \
@@ -136,6 +137,22 @@ class Domain():
         """Multiply a Domain with a factor.
         """
         return self.__mul__(other)
+
+    @property
+    def ll_lon(self):
+        return self.grid_rotated.get_bounding_box()[0][0]
+
+    @property
+    def ll_lat(self):
+        return self.grid_rotated.get_bounding_box()[0][1]
+
+    @property
+    def ur_lon(self):
+        return self.grid_rotated.get_bounding_box()[2][0]
+
+    @property
+    def ur_lat(self):
+        return self.grid_rotated.get_bounding_box()[2][1]
 
     @property
     def pollon(self):
@@ -230,6 +247,7 @@ class Domain():
         text += '{:<15}    :   {}\n'.format('long_name', self.long_name)
         text += '{:<15}    :   {}\n'.format('nlon', self.nlon)
         text += '{:<15}    :   {}\n'.format('nlat', self.nlat)
+        text += '{:<15}    :   {}\n'.format('region', self.region)
         text += str(self.grid_rotated)
         return text
 
@@ -307,6 +325,12 @@ class Domain():
         #self.get_xarray_dataset(grid).to_netcdf(filename, **kwargs)
         return _get_dataset(self, filename, **kwargs)
 
+    def to_pandas(self):
+        content = {'region': self.region, 'short_name': self.short_name, 'long_name': self.long_name,
+                'nlon': self.nlon, 'nlat': self.nlat, 'll_lon': self.ll_lon, 'ur_lon': self.ur_lon,
+                'll_lat': self.ll_lat, 'ur_lat': self.ur_lat, 'dlon': self.dlon, 'dlat': self.dlat,
+                'pollon': self.pollon, 'pollat': self.pollat}
+        return pd.DataFrame(content, index=[0])
 
 
 class _CFDataset():
@@ -496,22 +520,6 @@ def _get_dataset_xr(domain, filename='', dummy=None, mapping_name=None, attrs=Tr
     return ds
 
 
-# euro-cordex domains now read from csv
-##class EUR_44(Domain):
-##    """Defines the EUR-44 rotated Domain.
-##    """
-##    def __init__(self):
-##        Domain.__init__(self, 106, 103, 0.44, 0.44,
-##            -162.0, 39.25, -28.21, -23.21, short_name='EUR-44')
-##
-##
-##class EUR_11(Domain):
-##    """Defines the EUR-11 rotated Domain.
-##    """
-##    def __init__(self):
-##        Domain.__init__(self, 424, 412, 0.11, 0.11,
-##            -162.0, 39.25, -28.375, -23.375, short_name='EUR-11')
-
 
 
 class _DomainFactory(object):
@@ -522,7 +530,6 @@ class _DomainFactory(object):
     def static_domains(cls):
         """Returns a list of instances of static domains.
         """
-        #return [EUR_44(), EUR_11()]
         return []
 
     @classmethod
@@ -556,6 +563,15 @@ class _DomainFactory(object):
             return cls.names_from_csv(table)
         else:
             return cls.names_from_static_domains() + cls.names_from_csv()
+
+    @classmethod
+    def domains(cls, table=None):
+        """Returns a dictionary of names and domains.
+        """
+        if table:
+            return {name: cls.get_domain(name) for name in cls.names_from_csv(table)}
+        else:
+            return {name: cls.get_domain(name) for name in (cls.names_from_static_domains() + cls.names_from_csv())}
 
     @classmethod
     def get_static_domain(cls, short_name):
@@ -603,10 +619,20 @@ def domain(name):
 
 
 def domains(table=None):
-    """Top level function that returns a list of available CORDEX domains.
+    """Top level function that returns a dictionay of CORDEX domains.
 
     Returns:
-      names (list): list of available CORDEX domains.
+      domains (dict): dict of available CORDEX domain names.
+
+    """
+    return _DomainFactory().domains(table)
+
+
+def names(table=None):
+    """Top level function that returns the names of available CORDEX domains.
+
+    Returns:
+      names (list): list of available CORDEX domain names.
 
     """
     return _DomainFactory().names(table)

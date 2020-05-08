@@ -12,10 +12,15 @@ __license__ = "mit"
 def test_names():
     # assert domain names
     for short_name in dm.domains():
-        print(short_name)
         assert short_name == dm.domain(short_name).short_name
 
 def test_refine():
+    # check if all 0.11 domains are consistent with the 0.44 domains
+    for short_name, domain in dm.domains('cordex-high-res').items():
+        name = domain.short_name.split('-')[0]+'-44'
+        print(name)
+        assert(dm.domain(name) * 0.25 == domain)
+
     eur11 = dm.domain('EUR-11')
     eur22 = dm.domain('EUR-22')
     eur44 = dm.domain('EUR-44')
@@ -35,4 +40,5 @@ def test_write():
 
 if __name__ == '__main__':
     test_names()
+    test_refine()
     test_write()
