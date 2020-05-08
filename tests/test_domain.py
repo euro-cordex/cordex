@@ -15,6 +15,18 @@ def test_names():
         print(short_name)
         assert short_name == dm.domain(short_name).short_name
 
+def test_refine():
+    eur11 = dm.domain('EUR-11')
+    eur22 = dm.domain('EUR-22')
+    eur44 = dm.domain('EUR-44')
+    assert(eur22 == eur44.refine(2))
+    assert(eur11 == eur44.refine(4))
+    # test simple domain math.
+    assert(eur22 == 0.5 * eur44 )
+    assert(eur11 == 0.25 * eur44 )
+    assert(eur11 == 0.5 * eur22 )
+    assert(eur44 == 4 * eur11 )
+
 
 def test_write():
     domain = dm.domain('EUR-11')
