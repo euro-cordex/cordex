@@ -317,15 +317,33 @@ class Domain():
         return ds
 
 
-    def to_netcdf(self, filename, **kwargs):
+    def to_netcdf(self, filename, dummy=False, **kwargs):
+        """write domain to netcdf file.
+
+        Args:
+          filename (str): filename to write netcdf.
+          dummy (str or logical): name of dummy field, if dummy=topo, the
+            cdo topo operator will be used to create some dummy topography data.
+            dummy data is useful for looking at the domain with ncview.
+
+
+        """
         #self.get_xarray_dataset(grid).to_netcdf(filename, **kwargs)
+        kwargs['dummy'] = dummy
         return self.get_dataset(filename, **kwargs).close()
 
     def get_dataset(self, filename, **kwargs):
+        """creates a netcdf dataset containg the domain grid.
+        """
         #self.get_xarray_dataset(grid).to_netcdf(filename, **kwargs)
         return _get_dataset(self, filename, **kwargs)
 
     def to_pandas(self):
+        """create a pandas DataFrame row.
+
+        Returns:
+          DataFrame: a pandas dataframe according to the cordex package table resource.
+        """
         content = {'region': self.region, 'short_name': self.short_name, 'long_name': self.long_name,
                 'nlon': self.nlon, 'nlat': self.nlat, 'll_lon': self.ll_lon, 'ur_lon': self.ur_lon,
                 'll_lat': self.ll_lat, 'ur_lat': self.ur_lat, 'dlon': self.dlon, 'dlat': self.dlat,

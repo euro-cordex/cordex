@@ -36,6 +36,7 @@ def test_refine():
 def test_write():
     domain = dm.domain('EUR-11')
     domain.to_netcdf('EUR-11.nc')
+    domain.to_netcdf('EUR-11.nc', dummy=True)
 
 
 if __name__ == '__main__':

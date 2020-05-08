@@ -58,17 +58,15 @@ Use the domain module to create Cordex domains safe and easy:
 
     # available tables
     print(dm.tables())
+    # available domains names
+    print(dm.names())
+    # available domains names
+    print(dm.names('cordex-core'))
     # print cordex core table
     print(dm.table('cordex-core'))
-    # available domains
-    print(dm.domains())
-    # available domains in cordex-core
-    print(dm.domains('cordex-core'))
 
-    # create domains with some dummy data (uses cdo topo)
-    for short_name in dm.domains():
-        print('creating domain: {}'.format(short_name))
-        domain = dm.domain(short_name)
+    # show domains with some dummy data (uses cdo topo)
+    for short_name, domain in dm.domains().items():
         print(domain)
         domain.to_netcdf(short_name+'.nc', dummy='topo')
 
@@ -87,21 +85,21 @@ Using the ESGF module for browsing the file system and creating pandas dataframe
     project_id = 'CMIP5'
     root       = '/pool/data/CMIP5/cmip5'
 
-    filter   = {'institute'           : 'MPI-M',
-                'product'             : 'output1',
-                'variable'            : 'tas',
-                'model'               : 'MPI-ESM-LR',
-                'modeling_realm'      : 'atmos',
-                'experiment'          : 'historical',
-                'ensemble_member'     : 'r1i1p1'}
+    filter   = {'institute'       : 'MPI-M',
+                'product'         : 'output1',
+                'variable'        : 'tas',
+                'model'           : 'MPI-ESM-LR',
+                'modeling_realm'  : 'atmos',
+                'experiment'      : 'historical',
+                'ensemble_member' : 'r1i1p1'}
 
     # get a selection of files (using pandas dataframes)
     selection = get_selection(project_id, root=root, filter=filter)
     print(selection)
 
-    # create a finer selection and convert dates to datetime objects 
+    # create a finer selection and convert dates to datetime objects
     selection = selection.subset(variable='pr').to_datetime()
-    # get a timeseries of files 
+    # get a timeseries of files
     selection = selection.select_timerange([dt.datetime(1990,1,1),dt.datetime(2000,1,1)])
     print(selection)
 
