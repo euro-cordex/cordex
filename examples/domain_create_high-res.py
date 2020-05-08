@@ -8,14 +8,13 @@ import pandas as pd
 df = pd.DataFrame()
 
 # create high-res domains from cordex domains
-for short_name in dm.domains('cordex'):
-    print('creating domain: {}'.format(short_name))
-    cordex_domain = dm.domain(short_name)
-    if cordex_domain.dlon == 0.44:
-        high_res = cordex_domain * 0.25
-        high_res.short_name = cordex_domain.short_name.split('-')[0]+'-11'
-        high_res.long_name = cordex_domain.long_name
-        high_res.region = cordex_domain.region
+for short_name, domain in dm.domains('cordex').items():
+    print('domain: {}'.format(short_name))
+    if domain.dlon == 0.44:
+        high_res = domain * 0.25
+        high_res.short_name = domain.short_name.split('-')[0]+'-11'
+        high_res.long_name = domain.long_name
+        high_res.region = domain.region
         df = df.append(high_res.to_pandas(), ignore_index=True)
 
 
