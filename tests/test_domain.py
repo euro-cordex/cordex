@@ -39,7 +39,16 @@ def test_write():
     domain.to_netcdf('EUR-11.nc', dummy=True)
 
 
+def test_plot():
+    domain = dm.domain('NAM-11')
+    domain.rotated_grid.pollon = 
+    bm = domain.basemap()
+    domain.plot(domain.short_name+'.png')
+
+
+
 if __name__ == '__main__':
     test_names()
-    test_refine()
+    xtest_refine()
     test_write()
+    #test_plot()

@@ -304,11 +304,11 @@ class Grid(object):
 
         dimx = lon.shape[0]
         dimy = lon.shape[1]
- 
+
         return (lon[dimx/2][dimy/2],lat[dimx/2][dimy/2])
 
 
-    
+
     def get_corners(self):
         """Returns lon-lat information of the four grid corners.
 
@@ -319,13 +319,13 @@ class Grid(object):
                Tuples of the four corners of the grid
         """
         lon, lat = self.coordinates
-        
+
         ll = (lon[0][0],lat[0][0])
         ul = (lon[-1][0],lat[-1][0])
         ur = (lon[-1][-1],lat[-1][-1])
         lr = (lon[0][-1],lat[0][-1])
 
-        return (ll, ul, ur, lr) 
+        return (ll, ul, ur, lr)
 
 
     def get_grid_box(self, lon, lat):

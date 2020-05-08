@@ -350,6 +350,12 @@ class Domain():
                 'pollon': self.pollon, 'pollat': self.pollat}
         return pd.DataFrame(content, index=[0])
 
+    def basemap(self):
+        return basemap(self)
+
+    def plot(self, filename=None):
+        return plot(self, filename)
+
 
 class _CFDataset():
 
@@ -478,6 +484,48 @@ class _XrDataset(_CFDataset):
             da_lon.attrs = cf.coords['lon']
             da_lat.attrs = cf.coords['lat']
         return da_lon, da_lat
+
+
+
+def basemap(domain):
+    from mpl_toolkits.basemap import Basemap
+    bm = Basemap(projection = "rotpole",
+                      o_lat_p = domain.pollat,
+                      o_lon_p = 0,
+                      llcrnrlat = domain.ll_lat,
+                      urcrnrlat = domain.ur_lat,
+                      llcrnrlon = domain.ll_lon,
+                      urcrnrlon = domain.ur_lon,
+                      lon_0 = normalize180(domain.pollon),
+                      rsphere = 6370000,
+                      resolution = 'l')
+    return bm
+
+
+def plot(domain, filename=None):
+    import matplotlib.pyplot as plt
+    fig = plt.figure(figsize=(8,8))
+    ax = fig.add_axes([0.1,0.1,0.8,0.8])
+    domain.basemap().drawcoastlines(linewidth=.5)
+    if filename:
+        plt.savefig(filename)
+        plt.close(fig)
+    return plt
+
+
+
+def normalize180(lon):
+    """Normalize lon to range [180, 180)"""
+    lower = -180.; upper = 180.
+    if lon > upper or lon == lower:
+        lon = lower + abs(lon + upper) % (abs(lower) + abs(upper))
+    if lon < lower or lon == upper:
+        lon = upper - abs(lon - lower) % (abs(lower) + abs(upper))
+    return lower if lon == upper else lon
+
+
+
+
 
 
 def _get_dataset(domain, filename='', dummy=None, mapping_name=None, attrs=True, **kwargs):
