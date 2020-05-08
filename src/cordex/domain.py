@@ -189,23 +189,25 @@ class Domain():
 
         Example:
 
-                from cordex import domain as dm
+                refinement examples::
 
-                eur44 = dm.domain('EUR-44')
-                eur22 = dm.domain('EUR-22')
-                eur11 = dm.domain('EUR-11')
+                    from cordex import domain as dm
 
-                # use of refinement funtion
-                eur44_ref = eur44.refine(2.0)
+                    eur44 = dm.domain('EUR-44')
+                    eur22 = dm.domain('EUR-22')
+                    eur11 = dm.domain('EUR-11')
 
-                # compare eur44_ref with EUR-22 from the table
-                print(eur22 == eur44_ref)
+                    # use of refinement funtion
+                    eur44_ref = eur44.refine(2.0)
 
-                # demonstrate simple domain math.
-                print(eur22 == 0.5 * eur44 )
-                print(eur11 == 0.25 * eur44 )
-                print(eur11 == 0.5 * eur22 )
-                print(eur44 == 4 * eur11 )
+                    # compare eur44_ref with EUR-22 from the table
+                    print(eur22 == eur44_ref)
+
+                    # demonstrate simple domain math.
+                    print(eur22 == 0.5 * eur44 )
+                    print(eur11 == 0.25 * eur44 )
+                    print(eur11 == 0.5 * eur22 )
+                    print(eur44 == 4 * eur11 )
 
         """
         # refined resolution
