@@ -247,6 +247,8 @@ class Domain():
         text += '{:<15}    :   {}\n'.format('long_name', self.long_name)
         text += '{:<15}    :   {}\n'.format('nlon', self.nlon)
         text += '{:<15}    :   {}\n'.format('nlat', self.nlat)
+        text += '{:<15}    :   {}\n'.format('dlon', self.dlon)
+        text += '{:<15}    :   {}\n'.format('dlat', self.dlat)
         text += '{:<15}    :   {}\n'.format('region', self.region)
         text += str(self.grid_rotated)
         return text
