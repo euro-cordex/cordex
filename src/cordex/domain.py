@@ -35,7 +35,7 @@ from netCDF4 import Dataset
 from . import grid as gd
 from . import cf
 
-from .tables.tables import CSV
+from .tables import CSV
 
 from cordex import __version__
 
