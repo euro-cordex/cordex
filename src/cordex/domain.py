@@ -84,7 +84,7 @@ TABLES = _read_tables_from_csv()
 class Domain():
     """The :class:`Domain` holds data and meta information of a Cordex Domain.
 
-    The :class:`Domain` holds :class:`grid.Grid`
+    The :class:`Domain` holds a :class:`grid.Grid` instance.
 
     **Attributes:**
         *nlon:*
@@ -95,6 +95,14 @@ class Domain():
             longitudal resolution (degrees)
         *dlat:*
             latitudal resolution (degrees)
+        *pollon:*
+            pol longitude (degrees)
+        *pollat:*
+            pol latitude (degrees)
+        *ll_lon:*
+            lower left rotated longitude (degrees)
+        *ll_lat:*
+            lower left rotated latitude (degrees)
     """
     def __init__(self, nlon, nlat, dlon, dlat,
                  pollon, pollat, ll_lon, ll_lat, short_name=None,
@@ -164,6 +172,10 @@ class Domain():
 
     @property
     def grid_lonlat(self):
+        """the global lon lat coordinates
+
+        Returns an :class:`Grid` instance holding global lat lon coordinates.
+        """
         return self.grid_rotated.transform()
 
     def _init_grid(self, nlon, nlat, dlon, dlat, ll_lon, ll_lat, pollon, pollat):
@@ -250,7 +262,10 @@ class Domain():
         text += '{:<15}    :   {}\n'.format('dlon', self.dlon)
         text += '{:<15}    :   {}\n'.format('dlat', self.dlat)
         text += '{:<15}    :   {}\n'.format('region', self.region)
+        text += 'rotated coordinates\n'
         text += str(self.grid_rotated)
+        text += 'lon lat coordinates\n'
+        text += str(self.grid_lonlat)
         return text
 
 
