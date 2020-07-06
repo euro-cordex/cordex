@@ -64,7 +64,7 @@ def _read_tables_from_csv():
     return tables
 
 
-def _create_domains_from_table(table):
+def domains_from_table(table):
     """creates domain instances from a pandas dataframe.
     """
     domains = {}
@@ -73,7 +73,7 @@ def _create_domains_from_table(table):
         domains[short_name] = Domain(short_name=short_name, **dict(row))
     return domains
 
-def _create_domain_from_table(short_name, table):
+def domain_from_table(short_name, table):
     """creates domain instance from a pandas dataframe row.
     """
     return Domain(short_name=short_name, **dict(table.loc[short_name]))
@@ -588,7 +588,7 @@ class _DomainFactory(object):
         """
         for table_name,table in TABLES.items():
             if short_name in table.index.values:
-                return _create_domain_from_table(short_name, table)
+                return domain_from_table(short_name, table)
 
     @classmethod
     def names(cls, table=None):
