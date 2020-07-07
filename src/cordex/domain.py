@@ -35,11 +35,10 @@ from netCDF4 import Dataset
 from . import grid as gd
 from . import cf
 
-from .tables import CSV
+from .tables import CSV, read_table_from_csv
 
 from cordex import __version__
 
-import pkg_resources
 from . import tables
 
 __author__ = "Lars Buntemeyer"
@@ -49,18 +48,12 @@ __license__ = "mit"
 _logger = logging.getLogger(__name__)
 
 
-def _read_table_from_csv(csv):
-    """reads a csv table from the package resource.
-    """
-    csv_file = pkg_resources.resource_stream('cordex.tables', csv)
-    return pd.read_csv(csv_file, index_col='short_name')
-
 def _read_tables_from_csv():
     """reads all csv tables from the package resource.
     """
     tables = {}
     for set_name, csv in CSV.items():
-        tables[set_name] = _read_table_from_csv(csv)
+        tables[set_name] = read_table_from_csv(csv, index_col='short_name')
     return tables
 
 
