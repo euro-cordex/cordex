@@ -42,7 +42,16 @@ def tables():
 
 
 class Variable():
+    """The :class:`Variable` holds data and meta information of a Cordex Variable.
 
+
+    **Attributes:**
+        *variable_id:*
+            cordex variable id. 
+        *project_id:*
+            cordex project id. 
+
+    """
     def __init__(self, variable_id, project_id='cmip5'):
         self.variable_id = variable_id
         self.project_id  = project_id
@@ -68,5 +77,26 @@ class Variable():
 
 
 def variables(project_id='cmip5'):
+    """Top level function that returns all CORDEX variables.
+
+    Args:
+      project_id (str): project_id.
+
+    Returns:
+      variables (dict): dictionary of Cordex variables.
+
+    """
     return {id:Variable(id, project_id) for id in table(project_id).index}
-     
+    
+ 
+def variable(variable_id, project_id='cmip5'):
+    """Top level function that returns a CORDEX variable.
+
+    Args:
+      variable_id (str): name of the variable.
+
+    Returns:
+      variable (:class:`_Variable`): Cordex variable.
+
+    """
+    return Variable(variable_id, project_id)
