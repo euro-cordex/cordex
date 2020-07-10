@@ -48,6 +48,14 @@ class Variable():
         self.project_id  = project_id
         self._from_table()
 
+
+    def __str__(self):
+        return str(self.series)
+
+    def __repr__(self):
+        return str(self.series)
+
+
     def __getattr__(self, attr):
         if attr in self.series:
            return self.series[attr]
