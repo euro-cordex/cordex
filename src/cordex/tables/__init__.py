@@ -1,3 +1,3 @@
 
 
-from ._tables import CSV
+from ._tables import *

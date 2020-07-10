@@ -35,11 +35,10 @@ from netCDF4 import Dataset
 from . import grid as gd
 from . import cf
 
-from .tables import CSV
+from .tables import domain_tables as CSV, read_resource_tables
 
 from cordex import __version__
 
-import pkg_resources
 from . import tables
 
 __author__ = "Lars Buntemeyer"
@@ -48,20 +47,6 @@ __license__ = "mit"
 
 _logger = logging.getLogger(__name__)
 
-
-def _read_table_from_csv(csv):
-    """reads a csv table from the package resource.
-    """
-    csv_file = pkg_resources.resource_stream('cordex.tables', csv)
-    return pd.read_csv(csv_file, index_col='short_name')
-
-def _read_tables_from_csv():
-    """reads all csv tables from the package resource.
-    """
-    tables = {}
-    for set_name, csv in CSV.items():
-        tables[set_name] = _read_table_from_csv(csv)
-    return tables
 
 
 def _create_domains_from_table(table):
@@ -78,7 +63,7 @@ def _create_domain_from_table(short_name, table):
     """
     return Domain(short_name=short_name, **dict(table.loc[short_name]))
 
-TABLES = _read_tables_from_csv()
+TABLES = read_resource_tables(CSV, index_col='short_name')
 
 
 class Domain():
