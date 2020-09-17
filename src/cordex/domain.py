@@ -35,11 +35,11 @@ from netCDF4 import Dataset
 from . import grid as gd
 from . import cf
 
-from .tables.tables import CSV
+#from .tables import domain_tables_external as CSV, read_tables
+from .tables import domains as TABLES
 
 from cordex import __version__
 
-import pkg_resources
 from . import tables
 
 __author__ = "Lars Buntemeyer"
@@ -49,22 +49,8 @@ __license__ = "mit"
 _logger = logging.getLogger(__name__)
 
 
-def _read_table_from_csv(csv):
-    """reads a csv table from the package resource.
-    """
-    csv_file = pkg_resources.resource_stream('cordex.tables', csv)
-    return pd.read_csv(csv_file, index_col='short_name')
 
-def _read_tables_from_csv():
-    """reads all csv tables from the package resource.
-    """
-    tables = {}
-    for set_name, csv in CSV.items():
-        tables[set_name] = _read_table_from_csv(csv)
-    return tables
-
-
-def _create_domains_from_table(table):
+def domains_from_table(table):
     """creates domain instances from a pandas dataframe.
     """
     domains = {}
@@ -73,18 +59,17 @@ def _create_domains_from_table(table):
         domains[short_name] = Domain(short_name=short_name, **dict(row))
     return domains
 
-def _create_domain_from_table(short_name, table):
+def domain_from_table(short_name, table):
     """creates domain instance from a pandas dataframe row.
     """
     return Domain(short_name=short_name, **dict(table.loc[short_name]))
 
-TABLES = _read_tables_from_csv()
 
 
 class Domain():
     """The :class:`Domain` holds data and meta information of a Cordex Domain.
 
-    The :class:`Domain` holds :class:`grid.Grid`
+    The :class:`Domain` holds a :class:`grid.Grid` instance.
 
     **Attributes:**
         *nlon:*
@@ -95,6 +80,14 @@ class Domain():
             longitudal resolution (degrees)
         *dlat:*
             latitudal resolution (degrees)
+        *pollon:*
+            pol longitude (degrees)
+        *pollat:*
+            pol latitude (degrees)
+        *ll_lon:*
+            lower left rotated longitude (degrees)
+        *ll_lat:*
+            lower left rotated latitude (degrees)
     """
     def __init__(self, nlon, nlat, dlon, dlat,
                  pollon, pollat, ll_lon, ll_lat, short_name=None,
@@ -164,6 +157,10 @@ class Domain():
 
     @property
     def grid_lonlat(self):
+        """the global lon lat coordinates
+
+        Returns an :class:`Grid` instance holding global lat lon coordinates.
+        """
         return self.grid_rotated.transform()
 
     def _init_grid(self, nlon, nlat, dlon, dlat, ll_lon, ll_lat, pollon, pollat):
@@ -247,8 +244,13 @@ class Domain():
         text += '{:<15}    :   {}\n'.format('long_name', self.long_name)
         text += '{:<15}    :   {}\n'.format('nlon', self.nlon)
         text += '{:<15}    :   {}\n'.format('nlat', self.nlat)
+        text += '{:<15}    :   {}\n'.format('dlon', self.dlon)
+        text += '{:<15}    :   {}\n'.format('dlat', self.dlat)
         text += '{:<15}    :   {}\n'.format('region', self.region)
+        text += 'rotated coordinates\n'
         text += str(self.grid_rotated)
+        text += 'lon lat coordinates\n'
+        text += str(self.grid_lonlat)
         return text
 
 
@@ -619,7 +621,7 @@ class _DomainFactory(object):
         """
         for table_name,table in TABLES.items():
             if short_name in table.index.values:
-                return _create_domain_from_table(short_name, table)
+                return domain_from_table(short_name, table)
 
     @classmethod
     def names(cls, table=None):
@@ -724,3 +726,8 @@ def tables():
 
     """
     return list(TABLES.keys())
+
+
+
+#TABLES = read_tables(CSV, index_col='short_name')
+
