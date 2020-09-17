@@ -35,7 +35,8 @@ from netCDF4 import Dataset
 from . import grid as gd
 from . import cf
 
-from .tables import domain_tables as CSV, read_resource_tables
+#from .tables import domain_tables_external as CSV, read_tables
+from .tables import domains as TABLES
 
 from cordex import __version__
 
@@ -46,6 +47,7 @@ __copyright__ = "Lars Buntemeyer"
 __license__ = "mit"
 
 _logger = logging.getLogger(__name__)
+
 
 
 def domains_from_table(table):
@@ -62,7 +64,6 @@ def domain_from_table(short_name, table):
     """
     return Domain(short_name=short_name, **dict(table.loc[short_name]))
 
-TABLES = read_resource_tables(CSV, index_col='short_name')
 
 
 class Domain():
@@ -677,3 +678,8 @@ def tables():
 
     """
     return list(TABLES.keys())
+
+
+
+#TABLES = read_tables(CSV, index_col='short_name')
+

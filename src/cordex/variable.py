@@ -6,14 +6,7 @@ This module defines variables for the CORDEX data request.
 
 """
 
-from .tables import data_request_tables, read_tables 
-
-
-try:
-  TABLES = read_tables(data_request_tables, index_col='variable_id', converters = {'frequency': (lambda x: x.split(",")) })
-except:
-  print('could not read tables from: {}'.format(data_request_tables))
-  TABLES = {}
+from .tables import variables as TABLES
 
 
 def table(name):
