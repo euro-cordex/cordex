@@ -186,3 +186,8 @@ Note
 
 This project has been set up using PyScaffold 3.2.3. For details and usage
 information on PyScaffold see https://pyscaffold.org/.
+
+
+.. image:: https://badges.gitter.im/euro-cordex/python-cordex.svg
+   :alt: Join the chat at https://gitter.im/euro-cordex/python-cordex
+   :target: https://gitter.im/euro-cordex/python-cordex?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
