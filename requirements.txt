@@ -21,5 +21,7 @@ netCDF4
 cdo
 urllib3
 xmltodict
+matplotlib
+cartopy
 cdo
 #
