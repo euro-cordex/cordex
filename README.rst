@@ -1,3 +1,7 @@
+THIS PROJECT IS ARCHIVED, PLEASE USE `py-cordex <https://github.com/euro-cordex/py-cordex>`_ INSTEAD!
+=====================================================================================================
+
+
 .. image:: https://readthedocs.org/projects/cordex/badge/?version=latest
     :alt: Documentation Status
     :target: https://cordex.readthedocs.io/en/latest/?badge=latest
